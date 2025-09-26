@@ -19,6 +19,13 @@
         :people="item.credits.cast" />
     </template>
 
+    <template v-if="activeMenu === 'watch'">
+      <VidKingPlayer
+        :movie-id="item.id"
+        :title="name"
+        type="movie" />
+    </template>
+
     <template v-if="activeMenu === 'videos' && showVideos">
       <Videos
         :videos="item.videos.results" />
@@ -52,6 +59,7 @@ import TopNav from '~/components/global/TopNav';
 import Hero from '~/components/Hero';
 import MediaNav from '~/components/MediaNav';
 import MovieInfo from '~/components/movie/MovieInfo';
+import VidKingPlayer from '~/components/VidKingPlayer';
 import Videos from '~/components/Videos';
 import Images from '~/components/Images';
 import Credits from '~/components/Credits';
@@ -63,6 +71,7 @@ export default {
     Hero,
     MediaNav,
     MovieInfo,
+    VidKingPlayer,
     Videos,
     Images,
     Credits,
@@ -156,9 +165,24 @@ export default {
   created () {
     this.createMenu();
     this.initRecommended();
+    
+    // Check if we should switch to watch tab
+    this.checkWatchTab();
+  },
+
+  watch: {
+    '$route.query.tab' () {
+      this.checkWatchTab();
+    },
   },
 
   methods: {
+    checkWatchTab () {
+      if (this.$route.query.tab === 'watch') {
+        this.activeMenu = 'watch';
+      }
+    },
+
     truncate (string, length) {
       return this.$options.filters.truncate(string, length);
     },
@@ -168,6 +192,9 @@ export default {
 
       // overview
       menu.push('Overview');
+
+      // watch
+      menu.push('Watch');
 
       // videos
       if (this.showVideos) menu.push('Videos');

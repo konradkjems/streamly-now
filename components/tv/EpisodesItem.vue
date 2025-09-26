@@ -1,6 +1,6 @@
 <template>
   <div :class="$style.item">
-    <div :class="$style.image">
+    <div :class="$style.image" @click="playEpisode">
       <img
         v-if="poster"
         v-lazyload="poster"
@@ -11,6 +11,12 @@
         <!-- eslint-disable-next-line -->
         <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill-rule="evenodd" clip-rule="evenodd" fill="#999"><path d="M24 22h-24v-20h24v20zm-1-19h-22v18h22v-18zm-1 16h-19l4-7.492 3 3.048 5.013-7.556 6.987 12zm-11.848-2.865l-2.91-2.956-2.574 4.821h15.593l-5.303-9.108-4.806 7.243zm-4.652-11.135c1.38 0 2.5 1.12 2.5 2.5s-1.12 2.5-2.5 2.5-2.5-1.12-2.5-2.5 1.12-2.5 2.5-2.5zm0 1c.828 0 1.5.672 1.5 1.5s-.672 1.5-1.5 1.5-1.5-.672-1.5-1.5.672-1.5 1.5-1.5z"/></svg>
       </span>
+      
+      <div :class="$style.playButton">
+        <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="white">
+          <path d="M8 5v14l11-7z"/>
+        </svg>
+      </div>
     </div>
 
     <h2 :class="$style.name">
@@ -38,6 +44,14 @@ export default {
       type: Object,
       required: true,
     },
+    tvShowId: {
+      type: [String, Number],
+      required: true,
+    },
+    seasonNumber: {
+      type: [String, Number],
+      required: true,
+    },
   },
 
   computed: {
@@ -47,6 +61,17 @@ export default {
       } else {
         return null;
       }
+    },
+  },
+
+  methods: {
+    playEpisode () {
+      this.$emit('play-episode', {
+        tvShowId: this.tvShowId,
+        seasonNumber: this.seasonNumber,
+        episodeNumber: this.episode.episode_number,
+        episodeName: this.episode.name
+      });
     },
   },
 };
@@ -105,6 +130,34 @@ export default {
     align-items: center;
     justify-content: center;
   }
+}
+
+.playButton {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.image:hover .playButton {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.playButton:hover {
+  background: rgba(0, 0, 0, 0.9);
+  transform: translate(-50%, -50%) scale(1.1);
 }
 
 .name {

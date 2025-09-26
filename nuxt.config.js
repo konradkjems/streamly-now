@@ -55,6 +55,52 @@ export default {
     ],
   },
 
+  // Security headers for production
+  render: {
+    csp: {
+      hashAlgorithm: 'sha256',
+      policies: {
+        'default-src': ["'self'"],
+        'script-src': [
+          "'self'",
+          "'unsafe-inline'",
+          "'unsafe-eval'",
+          "https://www.googletagmanager.com",
+          "https://www.google-analytics.com",
+          "https://www.vidking.net"
+        ],
+        'style-src': [
+          "'self'",
+          "'unsafe-inline'",
+          "https://fonts.googleapis.com"
+        ],
+        'font-src': [
+          "'self'",
+          "https://fonts.gstatic.com"
+        ],
+        'img-src': [
+          "'self'",
+          "data:",
+          "https://image.tmdb.org",
+          "https://www.vidking.net"
+        ],
+        'connect-src': [
+          "'self'",
+          "https://api.themoviedb.org",
+          "https://www.google-analytics.com",
+          "https://www.vidking.net"
+        ],
+        'frame-src': [
+          "'self'",
+          "https://www.vidking.net"
+        ],
+        'object-src': ["'none'"],
+        'base-uri': ["'self'"],
+        'form-action': ["'self'"]
+      }
+    }
+  },
+
   // Global CSS
   css: ["@/assets/css/global.scss"],
 

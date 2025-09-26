@@ -66,16 +66,28 @@
               {{ item.overview | truncate(200) }}
             </div>
 
-            <button
-              v-if="trailer"
-              class="button button--icon"
-              :class="$style.trailer"
-              type="button"
-              @click="openModal">
-              <!-- eslint-disable-next-line -->
-              <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d="M3 22v-20l18 10-18 10z"/></svg></span>
-              <span class="txt">Watch Trailer</span>
-            </button>
+            <div :class="$style.buttons">
+              <button
+                class="button button--primary"
+                :class="$style.watchNow"
+                type="button"
+                @click="watchNow">
+                <!-- eslint-disable-next-line -->
+                <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg></span>
+                <span class="txt">Watch Now</span>
+              </button>
+
+              <button
+                v-if="trailer"
+                class="button button--icon"
+                :class="$style.trailer"
+                type="button"
+                @click="openModal">
+                <!-- eslint-disable-next-line -->
+                <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d="M3 22v-20l18 10-18 10z"/></svg></span>
+                <span class="txt">Watch Trailer</span>
+              </button>
+            </div>
           </div>
         </transition>
       </div>
@@ -134,6 +146,15 @@ export default {
 
     closeModal () {
       this.modalVisible = false;
+    },
+
+    watchNow () {
+      // Navigate to the detail page and switch to watch tab
+      this.$router.push({
+        name: `${this.type}-id`,
+        params: { id: this.item.id },
+        query: { tab: 'watch' }
+      });
     },
   },
 };
@@ -340,7 +361,9 @@ export default {
   }
 }
 
-.trailer {
+.buttons {
+  display: flex;
+  gap: 1.5rem;
   margin-top: 3rem;
 
   @media (max-width: $breakpoint-medium - 1) {
@@ -349,6 +372,42 @@ export default {
 
   @media (min-width: 1650px) {
     font-size: 0.9vw;
+  }
+}
+
+.watchNow {
+  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+  border: none;
+  box-shadow: 0 4px 15px rgba(33, 150, 243, 0.4);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+    box-shadow: 0 6px 20px rgba(33, 150, 243, 0.6);
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  .icon {
+    margin-right: 0.8rem;
+  }
+}
+
+.trailer {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
   }
 }
 </style>

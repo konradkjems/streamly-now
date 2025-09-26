@@ -26,7 +26,10 @@
       <EpisodesItem
         v-for="episode in activeEpisodes"
         :key="`episode-${episode.id}`"
-        :episode="episode" />
+        :episode="episode"
+        :tv-show-id="tvShowId"
+        :season-number="activeSeason"
+        @play-episode="onPlayEpisode" />
     </div>
   </div>
 </template>
@@ -43,6 +46,10 @@ export default {
   props: {
     numberOfSeasons: {
       type: Number,
+      required: true,
+    },
+    tvShowId: {
+      type: [String, Number],
       required: true,
     },
   },
@@ -89,11 +96,15 @@ export default {
         this.activeEpisodes = season.episodes;
       } else {
         // get episodes for a certain season
-        getTvShowEpisodes(this.$route.params.id, this.activeSeason).then((response) => {
+        getTvShowEpisodes(this.tvShowId, this.activeSeason).then((response) => {
           season.episodes = response.episodes;
           this.activeEpisodes = season.episodes;
         });
       }
+    },
+
+    onPlayEpisode (episodeData) {
+      this.$emit('play-episode', episodeData);
     },
   },
 };

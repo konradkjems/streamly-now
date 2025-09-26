@@ -19,3 +19,7 @@ sw.*
 
 # OS Files
 .DS_Store
+migration_progress.md
+migration_plan.md
+migration_audit.md
+.vercel

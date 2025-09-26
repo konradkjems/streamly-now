@@ -19,9 +19,56 @@
         :people="item.credits.cast" />
     </template>
 
+    <template v-if="activeMenu === 'watch'">
+      <div class="watch-section">
+        <div class="season-episode-selector">
+          <div class="selector-group">
+            <label for="season-select">Season:</label>
+            <select 
+              id="season-select"
+              v-model="selectedSeason" 
+              @change="onSeasonChange"
+              class="selector">
+              <option 
+                v-for="season in availableSeasons" 
+                :key="season" 
+                :value="season">
+                Season {{ season }}
+              </option>
+            </select>
+          </div>
+          
+          <div class="selector-group">
+            <label for="episode-select">Episode:</label>
+            <select 
+              id="episode-select"
+              v-model="selectedEpisode" 
+              @change="onEpisodeChange"
+              class="selector">
+              <option 
+                v-for="episode in availableEpisodes" 
+                :key="episode" 
+                :value="episode">
+                Episode {{ episode }}
+              </option>
+            </select>
+          </div>
+        </div>
+        
+        <VidKingPlayer
+          :movie-id="item.id"
+          :title="name"
+          type="tv"
+          :season="selectedSeason"
+          :episode="selectedEpisode" />
+      </div>
+    </template>
+
     <template v-if="activeMenu === 'episodes' && showEpisodes">
       <Episodes
-        :number-of-seasons="item.number_of_seasons" />
+        :number-of-seasons="item.number_of_seasons"
+        :tv-show-id="item.id"
+        @play-episode="onPlayEpisode" />
     </template>
 
     <template v-if="activeMenu === 'videos' && showVideos">
@@ -57,6 +104,7 @@ import TopNav from '~/components/global/TopNav';
 import Hero from '~/components/Hero';
 import MediaNav from '~/components/MediaNav';
 import TvInfo from '~/components/tv/TvInfo';
+import VidKingPlayer from '~/components/VidKingPlayer';
 import Videos from '~/components/Videos';
 import Images from '~/components/Images';
 import Credits from '~/components/Credits';
@@ -69,6 +117,7 @@ export default {
     Hero,
     MediaNav,
     TvInfo,
+    VidKingPlayer,
     Videos,
     Images,
     Credits,
@@ -103,6 +152,8 @@ export default {
       menu: [],
       activeMenu: 'overview',
       recommended: null,
+      selectedSeason: 1,
+      selectedEpisode: 1,
     };
   },
 
@@ -151,6 +202,25 @@ export default {
       const images = this.item.images;
       return images && ((images.backdrops && images.backdrops.length) || (images.posters && images.posters.length));
     },
+
+    availableSeasons () {
+      const seasons = [];
+      const totalSeasons = this.item.number_of_seasons || 1;
+      for (let i = 1; i <= totalSeasons; i++) {
+        seasons.push(i);
+      }
+      return seasons;
+    },
+
+    availableEpisodes () {
+      const episodes = [];
+      // Default to 10 episodes per season if not specified
+      const episodesPerSeason = 10;
+      for (let i = 1; i <= episodesPerSeason; i++) {
+        episodes.push(i);
+      }
+      return episodes;
+    },
   },
 
   async asyncData ({ params, error }) {
@@ -170,9 +240,24 @@ export default {
   created () {
     this.createMenu();
     this.initRecommended();
+    
+    // Check if we should switch to watch tab
+    this.checkWatchTab();
+  },
+
+  watch: {
+    '$route.query.tab' () {
+      this.checkWatchTab();
+    },
   },
 
   methods: {
+    checkWatchTab () {
+      if (this.$route.query.tab === 'watch') {
+        this.activeMenu = 'watch';
+      }
+    },
+
     truncate (string, length) {
       return this.$options.filters.truncate(string, length);
     },
@@ -182,6 +267,9 @@ export default {
 
       // overview
       menu.push('Overview');
+
+      // watch
+      menu.push('Watch');
 
       // episodes
       if (this.showEpisodes) menu.push('Episodes');
@@ -207,6 +295,101 @@ export default {
         this.recommended = response;
       });
     },
+
+    onSeasonChange () {
+      // Reset episode to 1 when season changes
+      this.selectedEpisode = 1;
+    },
+
+    onEpisodeChange () {
+      // Episode changed, player will update automatically
+    },
+
+    onPlayEpisode (episodeData) {
+      // Switch to watch tab and set the selected season/episode
+      this.selectedSeason = episodeData.seasonNumber;
+      this.selectedEpisode = episodeData.episodeNumber;
+      this.activeMenu = 'watch';
+    },
   },
 };
 </script>
+
+<style lang="scss" scoped>
+.watch-section {
+  padding: 2rem 0;
+}
+
+.season-episode-selector {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.selector-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 120px;
+}
+
+.selector-group label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #ccc;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.selector {
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 120px;
+}
+
+.selector:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.selector:focus {
+  outline: none;
+  border-color: #2196f3;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+}
+
+.selector option {
+  background: #1a1a1a;
+  color: #fff;
+  padding: 0.5rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .season-episode-selector {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .selector-group {
+    min-width: auto;
+  }
+  
+  .selector {
+    min-width: auto;
+    width: 100%;
+  }
+}
+</style>
