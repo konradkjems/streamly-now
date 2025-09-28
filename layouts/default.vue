@@ -11,7 +11,7 @@
     <main class="main-content">
       <nuxt />
     </main>
-    <Footer />
+    <Footer class="footer-desktop" />
   </div>
 </template>
 
@@ -39,10 +39,8 @@ export default {
   },
 
   async mounted() {
-    // Initialize authentication and fetch user data
-    await this.$store.dispatch('auth/initializeAuth')
-    
-    // If user is authenticated, fetch their watchlist and viewing history
+    // Auth initialization is now handled in the Supabase plugin
+    // Just ensure we fetch user data if already authenticated
     if (this.$store.getters['auth/isAuthenticated']) {
       await this.$store.dispatch('watchlist/fetchWatchlist')
       await this.$store.dispatch('viewingHistory/fetchHistory')
@@ -60,6 +58,13 @@ export default {
 
   @media (max-width: $breakpoint-small) {
     padding-top: 6rem; // Smaller padding for mobile
+    padding-bottom: 8rem; // Space for mobile bottom navigation
+  }
+}
+
+.footer-desktop {
+  @media (max-width: $breakpoint-small) {
+    display: none; // Hide footer on mobile since we have bottom navigation
   }
 }
 </style>

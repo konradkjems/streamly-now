@@ -228,14 +228,15 @@ export default {
     },
 
     filteredAndSortedWatchlist() {
-      let filtered = this.getWatchlist
+      // Create a copy of the watchlist to avoid mutating Vuex state
+      let filtered = [...this.getWatchlist]
 
       // Filter by type
       if (this.typeFilter !== 'all') {
         filtered = filtered.filter(item => item.media_type === this.typeFilter)
       }
 
-      // Sort
+      // Sort (now safe since we're working with a copy)
       filtered.sort((a, b) => {
         switch (this.sortBy) {
           case 'media_title':

@@ -5,6 +5,7 @@ export const state = () => ({
   profile: null,
   preferences: null,
   loading: false,
+  initialized: false,
   error: null
 })
 
@@ -20,6 +21,9 @@ export const mutations = {
   },
   SET_LOADING(state, loading) {
     state.loading = loading
+  },
+  SET_INITIALIZED(state, initialized) {
+    state.initialized = initialized
   },
   SET_ERROR(state, error) {
     state.error = error
@@ -189,15 +193,45 @@ export const actions = {
 
   async initializeAuth({ commit, dispatch }) {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      commit('SET_LOADING', true)
       
-      if (user) {
-        commit('SET_USER', user)
+      // First try to get the current session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError) {
+        console.error('Error getting session:', sessionError)
+        commit('SET_INITIALIZED', true)
+        return
+      }
+      
+      if (session?.user) {
+        commit('SET_USER', session.user)
         await dispatch('fetchProfile')
         await dispatch('fetchPreferences')
+      } else {
+        // If no session, try getUser as fallback
+        const { data: { user }, error: userError } = await supabase.auth.getUser()
+        
+        if (userError) {
+          console.error('Error getting user:', userError)
+          commit('SET_INITIALIZED', true)
+          return
+        }
+        
+        if (user) {
+          commit('SET_USER', user)
+          await dispatch('fetchProfile')
+          await dispatch('fetchPreferences')
+        }
       }
+      
+      commit('SET_INITIALIZED', true)
     } catch (error) {
       console.error('Error initializing auth:', error)
+      commit('SET_ERROR', error.message)
+      commit('SET_INITIALIZED', true)
+    } finally {
+      commit('SET_LOADING', false)
     }
   }
 }

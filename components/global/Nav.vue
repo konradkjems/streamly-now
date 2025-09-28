@@ -1,44 +1,46 @@
 <template>
-  <nav :class="$style.nav">
-    <div :class="$style.navContent">
-      <!-- Netflix-style Logo -->
-      <div :class="$style.logo">
-        <nuxt-link
-          exact
-          :to="{ name: 'index' }"
-          aria-label="Home">
-          <span :class="$style.logoText">Streamly</span>
-        </nuxt-link>
-      </div>
-
-      <!-- Desktop Navigation Links -->
-      <ul :class="$style.navLinks">
-        <li>
+  <div>
+    <!-- Desktop Navigation -->
+    <nav :class="[$style.nav, $style.navDesktop]">
+      <div :class="$style.navContent">
+        <!-- Netflix-style Logo -->
+        <div :class="$style.logo">
           <nuxt-link
             exact
             :to="{ name: 'index' }"
-            :class="$style.navLink">
-            Home
+            aria-label="Home">
+            <span :class="$style.logoText">Streamly</span>
           </nuxt-link>
-        </li>
-        <li>
-          <nuxt-link
-            :to="{ name: 'movie' }"
-            :class="$style.navLink">
-            Movies
-          </nuxt-link>
-        </li>
-        <li>
-          <nuxt-link
-            :to="{ name: 'tv' }"
-            :class="$style.navLink">
-            TV Shows
-          </nuxt-link>
-        </li>
-      </ul>
+        </div>
 
-      <!-- Right Side Actions -->
-      <div :class="$style.navActions">
+        <!-- Desktop Navigation Links -->
+        <ul :class="$style.navLinks">
+          <li>
+            <nuxt-link
+              exact
+              :to="{ name: 'index' }"
+              :class="$style.navLink">
+              Home
+            </nuxt-link>
+          </li>
+          <li>
+            <nuxt-link
+              :to="{ name: 'movie' }"
+              :class="$style.navLink">
+              Movies
+            </nuxt-link>
+          </li>
+          <li>
+            <nuxt-link
+              :to="{ name: 'tv' }"
+              :class="$style.navLink">
+              TV Shows
+            </nuxt-link>
+          </li>
+        </ul>
+
+        <!-- Right Side Actions -->
+        <div :class="$style.navActions">
         <!-- User Menu (Desktop) -->
         <div v-if="isAuthenticated" :class="$style.userMenu">
           <button
@@ -148,7 +150,76 @@
     <transition name="mobile-nav-backdrop">
       <div v-if="mobileMenuOpen" :class="$style.mobileNavBackdrop" @click="closeMobileMenu"></div>
     </transition>
-  </nav>
+    </nav>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav :class="$style.mobileBottomNav">
+      <div :class="$style.mobileNavContent">
+        <!-- Home -->
+        <nuxt-link
+          exact
+          :to="{ name: 'index' }"
+          :class="[$style.mobileNavItem, { [$style.active]: $route.name === 'index' }]"
+          @click.native="closeMobileMenu">
+          <svg :class="$style.mobileNavIcon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9,22 9,12 15,12 15,22"/>
+          </svg>
+          <span :class="$style.mobileNavLabel">Home</span>
+        </nuxt-link>
+
+        <!-- Movies -->
+        <nuxt-link
+          :to="{ name: 'movie' }"
+          :class="[$style.mobileNavItem, { [$style.active]: $route.name === 'movie' || $route.name === 'movie-id' }]"
+          @click.native="closeMobileMenu">
+          <svg :class="$style.mobileNavIcon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+            <line x1="8" y1="21" x2="16" y2="21"/>
+            <line x1="12" y1="17" x2="12" y2="21"/>
+          </svg>
+          <span :class="$style.mobileNavLabel">Movies</span>
+        </nuxt-link>
+
+        <!-- TV Shows -->
+        <nuxt-link
+          :to="{ name: 'tv' }"
+          :class="[$style.mobileNavItem, { [$style.active]: $route.name === 'tv' || $route.name === 'tv-id' }]"
+          @click.native="closeMobileMenu">
+          <svg :class="$style.mobileNavIcon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="7" width="20" height="15" rx="2" ry="2"/>
+            <path d="m17 2-5 5-5-5"/>
+          </svg>
+          <span :class="$style.mobileNavLabel">TV Shows</span>
+        </nuxt-link>
+
+        <!-- Watchlist -->
+        <nuxt-link
+          v-if="isAuthenticated"
+          :to="{ name: 'watchlist' }"
+          :class="[$style.mobileNavItem, { [$style.active]: $route.name === 'watchlist' }]"
+          @click.native="closeMobileMenu">
+          <svg :class="$style.mobileNavIcon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/>
+          </svg>
+          <span :class="$style.mobileNavLabel">Watchlist</span>
+        </nuxt-link>
+
+        <!-- Search -->
+        <button
+          :class="[$style.mobileNavItem, $style.mobileNavButton]"
+          type="button"
+          aria-label="Search"
+          @click="toggleSearch">
+          <svg :class="$style.mobileNavIcon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.35-4.35"/>
+          </svg>
+          <span :class="$style.mobileNavLabel">Search</span>
+        </button>
+      </div>
+    </nav>
+  </div>
 </template>
 
 <script>
@@ -672,6 +743,145 @@ export default {
   &:hover {
     background: linear-gradient(135deg, #B81D13 0%, #8B1538 100%);
     transform: translateY(-1px);
+  }
+}
+
+// Desktop Navigation
+.navDesktop {
+  @media (max-width: $breakpoint-small) {
+    display: none;
+  }
+}
+
+// Mobile Bottom Navigation
+.mobileBottomNav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: auto;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.8rem 0 calc(0.8rem + env(safe-area-inset-bottom));
+  margin: 0;
+  transform: translateZ(0); // Force hardware acceleration
+  -webkit-transform: translateZ(0);
+
+  @media (max-width: $breakpoint-small) {
+    display: block;
+  }
+
+  // Override any global nav styles
+  * {
+    box-sizing: border-box;
+  }
+}
+
+.mobileNavContent {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-around !important;
+  align-items: center !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 0 1rem !important;
+  flex-wrap: nowrap !important;
+  overflow: hidden;
+}
+
+.mobileNavItem {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0.8rem 0.4rem !important;
+  text-decoration: none !important;
+  color: #b3b3b3 !important;
+  transition: all 0.3s ease;
+  border-radius: 8px !important;
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+  flex-shrink: 0 !important;
+  outline: 0 !important;
+  -webkit-tap-highlight-color: transparent;
+  width: auto !important;
+  height: auto !important;
+
+  &:hover,
+  &:focus {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  &.active {
+    color: $primary-color;
+    background: rgba(229, 9, 20, 0.1);
+
+    .mobileNavIcon {
+      stroke: $primary-color;
+    }
+
+    .mobileNavLabel {
+      color: $primary-color;
+      font-weight: 600;
+    }
+  }
+}
+
+.mobileNavButton {
+  background: none !important;
+  border: none !important;
+  cursor: pointer !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0.8rem 0.4rem !important;
+  text-decoration: none !important;
+  color: #b3b3b3 !important;
+  transition: all 0.3s ease;
+  border-radius: 8px !important;
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+  flex-shrink: 0 !important;
+  outline: 0 !important;
+  -webkit-tap-highlight-color: transparent;
+  width: auto !important;
+  height: auto !important;
+}
+
+.mobileNavIcon {
+  width: 2.4rem;
+  height: 2.4rem;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  margin-bottom: 0.4rem;
+  transition: all 0.3s ease;
+}
+
+.mobileNavLabel {
+  font-size: 1rem;
+  font-weight: 500;
+  color: inherit;
+  text-align: center;
+  line-height: 1.2;
+  transition: all 0.3s ease;
+}
+
+// Adjust main content padding for mobile bottom nav
+@media (max-width: $breakpoint-small) {
+  :global(.main-content) {
+    padding-bottom: 8rem; // Space for bottom navigation
+  }
+  
+  :global(html), :global(body) {
+    position: relative !important;
   }
 }
 </style>

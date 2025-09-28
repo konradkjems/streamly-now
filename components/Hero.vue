@@ -4,11 +4,10 @@
       <div :class="$style.backdrop">
         <div>
           <button
-            v-if="trailer"
             :class="$style.play"
             type="button"
-            aria-label="Play Trailer"
-            @click="openModal">
+            aria-label="Watch Now"
+            @click="watchNow">
             <!-- eslint-disable-next-line -->
             <svg xmlns="http://www.w3.org/2000/svg" width="55" height="55" viewBox="0 0 55 55"><circle cx="27.5" cy="27.5" r="26.75" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/><path fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.97 40.81L40.64 27.5 20.97 14.19v26.62z"/></svg>
           </button>
@@ -236,13 +235,47 @@ export default {
   top: 50%;
   left: 50%;
   z-index: 1;
-  padding: 0;
+  padding: 2rem;
   margin: 0;
-  background: none;
+  background: rgba(0, 0, 0, 0.8);
+  border: 3px solid #fff;
+  border-radius: 50%;
   transform: translate(-50%, -50%);
+  transition: all 0.3s ease;
+  cursor: pointer;
 
   @media (min-width: $breakpoint-medium) {
     display: none;
+  }
+
+  &:hover {
+    background: rgba(229, 9, 20, 0.9);
+    border-color: $primary-color;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+
+  &:active {
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+
+  svg {
+    display: block;
+    width: 4rem;
+    height: 4rem;
+    
+    circle, path {
+      transition: all 0.3s ease;
+    }
+  }
+
+  &:hover svg {
+    circle {
+      stroke: #fff;
+    }
+    path {
+      stroke: #fff;
+      fill: #fff;
+    }
   }
 }
 

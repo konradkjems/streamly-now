@@ -333,12 +333,13 @@ export default {
     },
 
     filteredWatchlist() {
-      if (this.watchlistFilter === 'all') return this.getWatchlist
+      if (this.watchlistFilter === 'all') return [...this.getWatchlist]
       return this.getWatchlist.filter(item => item.media_type === this.watchlistFilter)
     },
 
     filteredHistory() {
-      let filtered = this.getHistory
+      // Create a copy to avoid mutating Vuex state
+      let filtered = [...this.getHistory]
       if (this.historyFilter === 'completed') {
         filtered = filtered.filter(item => item.completed)
       } else if (this.historyFilter === 'in-progress') {

@@ -1,10 +1,11 @@
 <template>
-  <div v-if="continueWatchingItems.length > 0" class="listing listing--carousel">
+  <div class="listing listing--carousel">
     <div class="listing__head">
       <h2 class="listing__title">Continue Watching</h2>
     </div>
 
-    <div class="carousel">
+    <!-- Content when user has items to continue watching -->
+    <div v-if="continueWatchingItems.length > 0" class="carousel">
       <button
         class="carousel__nav carousel__nav--left"
         aria-label="Previous"
@@ -21,7 +22,7 @@
         @scroll="scrollEvent">
         <div
           v-for="item in continueWatchingItems"
-          :key="`continue-${item.media_id}-${item.season_number}-${item.episode_number}`"
+          :key="`continue-${item.media_id}-${item.season_number || 'null'}-${item.episode_number || 'null'}-${item.id || Date.now()}`"
           class="card card--continue-watching">
           <nuxt-link
             class="card__link"
@@ -81,6 +82,35 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M6.1 23.2L17.9 12 6.1.8"/></svg>
       </button>
     </div>
+
+    <!-- Content when user has no items to continue watching -->
+    <div v-else class="continue-watching__empty">
+      <div class="continue-watching__empty-content">
+        <div class="continue-watching__empty-icon">
+          <!-- eslint-disable-next-line -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+            <line x1="8" y1="21" x2="16" y2="21"/>
+            <line x1="12" y1="17" x2="12" y2="21"/>
+          </svg>
+        </div>
+        <h3 class="continue-watching__empty-title">
+          {{ isAuthenticated ? 'Nothing to Continue' : 'Sign In to Continue Watching' }}
+        </h3>
+        <p class="continue-watching__empty-description">
+          {{ isAuthenticated 
+            ? 'Start watching movies and TV shows to see them here' 
+            : 'Sign in to your account to continue watching your favorite content' 
+          }}
+        </p>
+        <nuxt-link 
+          v-if="!isAuthenticated"
+          to="/auth/signin" 
+          class="button button--primary continue-watching__signin-btn">
+          Sign In
+        </nuxt-link>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -96,9 +126,19 @@ export default {
 
   computed: {
     ...mapGetters('viewingHistory', ['continueWatching']),
+    ...mapGetters('auth', ['isAuthenticated']),
 
     continueWatchingItems() {
-      return this.continueWatching.slice(0, 10) // Limit to 10 items
+      const items = this.continueWatching.slice(0, 10) // Limit to 10 items
+      
+      // Debug logging
+      if (process.client) {
+        console.log('ContinueWatching - continueWatching getter:', this.continueWatching)
+        console.log('ContinueWatching - continueWatchingItems:', items)
+        console.log('ContinueWatching - isAuthenticated:', this.isAuthenticated)
+      }
+      
+      return items
     }
   },
 
@@ -258,12 +298,72 @@ export default {
   }
 }
 
-@media (max-width: $breakpoint-xsmall - 1) {
+@media (max-width: 480px) {
   .card--continue-watching {
     .card__name,
     .card__progress-info {
       display: none;
     }
+  }
+}
+
+// Empty State Styles
+.continue-watching__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 20rem;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.continue-watching__empty-content {
+  max-width: 40rem;
+}
+
+.continue-watching__empty-icon {
+  margin-bottom: 2rem;
+  
+  svg {
+    opacity: 0.6;
+  }
+}
+
+.continue-watching__empty-title {
+  margin: 0 0 1rem;
+  font-size: 2.2rem;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.continue-watching__empty-description {
+  margin: 0 0 2.5rem;
+  font-size: 1.5rem;
+  line-height: 1.6;
+  color: #b3b3b3;
+}
+
+.continue-watching__signin-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 1.2rem 2.4rem;
+  font-size: 1.4rem;
+  font-weight: 600;
+  text-decoration: none;
+  background: linear-gradient(135deg, $primary-color 0%, #B81D13 100%);
+  border: none;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: linear-gradient(135deg, #B81D13 0%, #8B1538 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(229, 9, 20, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 }
 </style>
