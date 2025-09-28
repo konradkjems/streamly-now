@@ -17,8 +17,12 @@
 </template>
 
 <script>
+import ViewingTracker from '~/mixins/ViewingTracker'
+
 export default {
   name: 'VidKingPlayer',
+  
+  mixins: [ViewingTracker],
   
   props: {
     movieId: {
@@ -55,9 +59,45 @@ export default {
         baseUrl += '/' + this.season + '/' + this.episode;
       }
       
-      var params = 'autoplay=true&color=';
+      // Use the specified parameters
+      var params = 'color=e50914&autoPlay=true&nextEpisode=true&episodeSelector=true';
       return baseUrl + '?' + params;
     },
+  },
+
+  mounted() {
+    // Track when user starts watching
+    this.trackViewingStart({
+      id: this.movieId,
+      title: this.type === 'movie' ? this.title : null,
+      name: this.type === 'tv' ? this.title : null,
+      poster_path: null, // We don't have poster path in this component
+      runtime: null // We don't have runtime in this component
+    }, this.season, this.episode)
+  },
+
+  methods: {
+    // Method to be called from parent components to track progress
+    updateViewingProgress(watchDuration) {
+      this.trackViewingProgress({
+        id: this.movieId,
+        title: this.type === 'movie' ? this.title : null,
+        name: this.type === 'tv' ? this.title : null,
+        poster_path: null,
+        runtime: null
+      }, watchDuration, this.season, this.episode)
+    },
+
+    // Method to be called when viewing is complete
+    completeViewing() {
+      this.trackViewingComplete({
+        id: this.movieId,
+        title: this.type === 'movie' ? this.title : null,
+        name: this.type === 'tv' ? this.title : null,
+        poster_path: null,
+        runtime: null
+      }, this.season, this.episode)
+    }
   },
 };
 </script>

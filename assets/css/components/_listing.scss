@@ -23,11 +23,13 @@
 }
 
 .listing__title {
-  font-size: 1.8rem;
+  font-size: 2.2rem;
+  font-weight: 600;
+  color: #fff;
   letter-spacing: $letter-spacing;
 
   @media (min-width: $breakpoint-large) {
-    font-size: 2.4rem;
+    font-size: 2.8rem;
   }
 }
 

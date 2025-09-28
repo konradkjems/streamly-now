@@ -99,10 +99,13 @@ export default {
   top: 0;
   right: 0;
   left: 0;
-  z-index: 10;
+  width: 100vw;
+  z-index: 1001;
 
+  // Remove any left offset at large screens to ensure full width
   @media (min-width: $breakpoint-large) {
-    left: 10rem;
+    left: 0;
+    width: 100vw;
   }
 
   input[type='text'] {
@@ -135,6 +138,8 @@ export default {
 
 .field {
   display: flex;
-  background-color: $secondary-color;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.95) 0%, transparent 100%);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 </style>

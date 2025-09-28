@@ -1,49 +1,70 @@
 <template>
   <div class="card">
-    <nuxt-link
-      class="card__link"
-      :to="{ name: `${media}-id`, params: { id: item.id } }">
-      <div class="card__img">
-        <img
-          v-if="poster"
-          v-lazyload="poster"
-          class="lazyload"
-          :alt="name">
+    <div class="card__content">
+      <nuxt-link
+        class="card__link"
+        :to="{ name: `${media}-id`, params: { id: item.id } }">
+        <div class="card__img">
+          <img
+            v-if="poster"
+            v-lazyload="poster"
+            class="lazyload"
+            :alt="name">
 
-        <span v-else>
-          <!-- eslint-disable-next-line -->
-          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill-rule="evenodd" clip-rule="evenodd" fill="#999"><path d="M24 22h-24v-20h24v20zm-1-19h-22v18h22v-18zm-1 16h-19l4-7.492 3 3.048 5.013-7.556 6.987 12zm-11.848-2.865l-2.91-2.956-2.574 4.821h15.593l-5.303-9.108-4.806 7.243zm-4.652-11.135c1.38 0 2.5 1.12 2.5 2.5s-1.12 2.5-2.5 2.5-2.5-1.12-2.5-2.5 1.12-2.5 2.5-2.5zm0 1c.828 0 1.5.672 1.5 1.5s-.672 1.5-1.5 1.5-1.5-.672-1.5-1.5.672-1.5 1.5-1.5z"/></svg>
-        </span>
-      </div>
-
-      <h2 class="card__name">
-        {{ name }}
-      </h2>
-
-      <div
-        v-if="media !== 'person' && (stars || item.vote_average)"
-        class="card__rating">
-        <div
-          v-if="stars"
-          class="card__stars">
-          <div :style="{ width: `${stars}%` }" />
+          <span v-else>
+            <!-- eslint-disable-next-line -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill-rule="evenodd" clip-rule="evenodd" fill="#999"><path d="M24 22h-24v-20h24v20zm-1-19h-22v18h22v-18zm-1 16h-19l4-7.492 3 3.048 5.013-7.556 6.987 12zm-11.848-2.865l-2.91-2.956-2.574 4.821h15.593l-5.303-9.108-4.806 7.243zm-4.652-11.135c1.38 0 2.5 1.12 2.5 2.5s-1.12 2.5-2.5 2.5-2.5-1.12-2.5-2.5 1.12-2.5 2.5-2.5zm0 1c.828 0 1.5.672 1.5 1.5s-.672 1.5-1.5 1.5-1.5-.672-1.5-1.5.672-1.5 1.5-1.5z"/></svg>
+          </span>
         </div>
 
+        <h2 class="card__name">
+          {{ name }}
+        </h2>
+
         <div
-          v-if="item.vote_average"
-          class="card__vote">
-          {{ item.vote_average | rating }}
+          v-if="media !== 'person' && (stars || item.vote_average)"
+          class="card__rating">
+          <div
+            v-if="stars"
+            class="card__stars">
+            <div :style="{ width: `${stars}%` }" />
+          </div>
+
+          <div
+            v-if="item.vote_average"
+            class="card__vote">
+            {{ item.vote_average | rating }}
+          </div>
+        </div>
+      </nuxt-link>
+
+      <!-- Watchlist Button Overlay -->
+      <div v-if="media !== 'person'" class="card__actions">
+        <WatchlistButton :item="item" />
+      </div>
+
+      <!-- Progress Bar (if watched) -->
+      <div v-if="media !== 'person' && watchProgress" class="card__progress">
+        <div 
+          class="card__progress-bar"
+          :style="{ width: watchProgress.progress_percentage + '%' }">
         </div>
       </div>
-    </nuxt-link>
+    </div>
   </div>
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 import { apiImgUrl } from '~/api';
 import { name, stars } from '~/mixins/Details';
+import WatchlistButton from '~/components/WatchlistButton';
 
 export default {
+  components: {
+    WatchlistButton,
+  },
+
   mixins: [
     name,
     stars,
@@ -57,6 +78,8 @@ export default {
   },
 
   computed: {
+    ...mapGetters('viewingHistory', ['watchProgress']),
+
     poster () {
       if (this.item.poster_path) {
         return `${apiImgUrl}/w370_and_h556_bestv2${this.item.poster_path}`;
@@ -75,6 +98,17 @@ export default {
       } else {
         return 'movie';
       }
+    },
+
+    watchProgress() {
+      if (!this.$store.getters['auth/isAuthenticated']) return null
+      
+      return this.$store.getters['viewingHistory/watchProgress']({
+        media_type: this.media,
+        media_id: this.item.id,
+        season_number: null,
+        episode_number: null
+      })
     },
   },
 };

@@ -3,6 +3,9 @@
     <Hero
       :item="featured" />
 
+    <!-- Continue Watching Section -->
+    <ContinueWatching />
+
     <ListingCarousel
       v-if="trendingMovies && trendingMovies.results.length"
       :title="trendingMoviesTitle"
@@ -21,11 +24,13 @@
 import { getTrending, getMovie, getTvShow, getListItem } from '~/api';
 import Hero from '~/components/Hero';
 import ListingCarousel from '~/components/ListingCarousel';
+import ContinueWatching from '~/components/ContinueWatching';
 
 export default {
   components: {
     Hero,
     ListingCarousel,
+    ContinueWatching,
   },
 
   computed: {

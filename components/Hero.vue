@@ -77,6 +77,8 @@
                 <span class="txt">Watch Now</span>
               </button>
 
+              <WatchlistButton :item="item" :show-text="true" />
+
               <button
                 v-if="trailer"
                 class="button button--icon"
@@ -104,10 +106,13 @@
 <script>
 import { name, stars, yearStart, cert, backdrop, trailer } from '~/mixins/Details';
 import Modal from '~/components/Modal';
+import WatchlistButton from '~/components/WatchlistButton';
+import ViewingTracker from '~/mixins/ViewingTracker';
 
 export default {
   components: {
     Modal,
+    WatchlistButton,
   },
 
   mixins: [
@@ -117,6 +122,7 @@ export default {
     cert,
     backdrop,
     trailer,
+    ViewingTracker,
   ],
 
   props: {
@@ -148,7 +154,10 @@ export default {
       this.modalVisible = false;
     },
 
-    watchNow () {
+    async watchNow () {
+      // Track viewing start
+      await this.trackViewingStart(this.item);
+      
       // Navigate to the detail page and switch to watch tab
       this.$router.push({
         name: `${this.type}-id`,
@@ -167,19 +176,19 @@ export default {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 35rem;
+  height: 50rem;
   color: #999;
   background-color: #000;
 
   @media (min-width: $breakpoint-xsmall) {
-    height: 50rem;
+    height: 60rem;
   }
 
   @media (min-width: $breakpoint-medium) {
     position: relative;
     display: block;
     height: 0;
-    padding-bottom: 40%;
+    padding-bottom: 56.25%; // 16:9 aspect ratio
   }
 }
 
@@ -317,23 +326,32 @@ export default {
 }
 
 .stars {
-  width: 8.5rem;
-  height: 1.4rem;
+  position: relative;
+  display: inline-block;
   margin-right: 1rem;
-  background-image: url('~assets/images/stars.png');
-  background-repeat: no-repeat;
-  background-size: auto 100%;
+  font-size: 1.4rem;
+  color: #ddd;
 
   @media (min-width: $breakpoint-small) {
-    width: 10.3rem;
-    height: 1.7rem;
+    font-size: 1.7rem;
+  }
+
+  &::before {
+    content: '★★★★★';
+    display: block;
   }
 
   > div {
-    height: 100%;
-    background-image: url('~assets/images/stars-filled.png');
-    background-repeat: no-repeat;
-    background-size: auto 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+    color: $primary-color;
+    
+    &::before {
+      content: '★★★★★';
+      display: block;
+    }
   }
 }
 
@@ -376,17 +394,17 @@ export default {
 }
 
 .watchNow {
-  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+  background: linear-gradient(135deg, #E50914 0%, #B81D13 100%);
   border: none;
-  box-shadow: 0 4px 15px rgba(33, 150, 243, 0.4);
+  box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   transition: all 0.3s ease;
 
   &:hover {
-    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
-    box-shadow: 0 6px 20px rgba(33, 150, 243, 0.6);
+    background: linear-gradient(135deg, #B81D13 0%, #8B1538 100%);
+    box-shadow: 0 6px 20px rgba(229, 9, 20, 0.6);
     transform: translateY(-2px);
   }
 

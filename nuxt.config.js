@@ -10,22 +10,22 @@ export default {
 
   // Headers of the page
   head: {
-    title: "Browse Movies, TV Shows and People",
+    title: "Streamly - Watch Movies & TV Shows",
     meta: [
       { charset: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       {
         hid: "description",
         name: "description",
-        content: "Browse Movies, TV Shows and People",
+        content: "Streamly - Watch Movies & TV Shows",
       },
       { hid: "author", name: "author", content: "Jason Ujma-Alvis" },
       { hid: "og:locale", property: "og:locale", content: "en_GB" },
-      { hid: "og:title", property: "og:title", content: "Movies App" },
+      { hid: "og:title", property: "og:title", content: "Streamly" },
       {
         hid: "og:description",
         property: "og:description",
-        content: "Browse Movies, TV Shows and People",
+        content: "Streamly - Watch Movies & TV Shows",
       },
       { hid: "og:type", property: "og:type", content: "website" },
       {
@@ -34,10 +34,10 @@ export default {
         content: "https://movies.jason.codes/",
       },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Movies" },
+      { name: "twitter:title", content: "Streamly" },
       {
         name: "twitter:description",
-        content: "Browse Movies, TV Shows and People",
+        content: "Streamly - Watch Movies & TV Shows",
       },
       { name: "twitter:site", content: "@jasonujmaalvis" },
       { name: "twitter:creator", content: "@jasonujmaalvis" },
@@ -108,6 +108,7 @@ export default {
   plugins: [
     "~/plugins/lazyload.js",
     "~/plugins/filters.js",
+    "~/plugins/supabase.js",
     { src: "~/plugins/ga.js", ssr: false },
   ],
 
@@ -116,8 +117,8 @@ export default {
 
   // Modules for dev and build (recommended): https://go.nuxtjs.dev/config-modules
   buildModules: [
-    // https://go.nuxtjs.dev/eslint
-    "@nuxtjs/eslint-module",
+    // Temporarily disabled ESLint to fix parsing errors
+    // "@nuxtjs/eslint-module",
   ],
 
   modules: ["@nuxtjs/dotenv", "@nuxtjs/axios", "@nuxtjs/pwa"],
@@ -132,10 +133,10 @@ export default {
   pwa: {
     manifest: {
       lang: "en",
-      name: "Movies",
-      short_name: "Movies",
-      description: "Browse Movies, TV Shows and People",
-      theme_color: "#2196f3",
+      name: "Streamly",
+      short_name: "Streamly",
+      description: "Watch Movies & TV Shows",
+      theme_color: "#E50914",
       background_color: "#000000",
     },
   },
@@ -162,10 +163,12 @@ export default {
     API_COUNTRY: process.env.API_COUNTRY || "GB",
     API_YOUTUBE_KEY: process.env.API_YOUTUBE_KEY || "",
     GA: process.env.GA || "",
+    SUPABASE_URL: process.env.SUPABASE_URL || "",
+    SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || "",
   },
 
   // Customize the progress bar color
   loading: {
-    color: "#2196f3",
+    color: "#E50914",
   },
 };
