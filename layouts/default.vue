@@ -4,8 +4,16 @@
     <InstallPrompt />
 
     <transition name="slidedown">
-      <SearchForm v-if="searchOpen" />
+      <SearchForm 
+        v-if="searchOpen" 
+        @open-advanced-search="showAdvancedSearch = true" />
     </transition>
+
+    <!-- Advanced Search Modal -->
+    <AdvancedSearchForm 
+      v-if="showAdvancedSearch"
+      @close="showAdvancedSearch = false"
+      @search-completed="handleAdvancedSearchCompleted" />
 
     <Nav />
     <main class="main-content">
@@ -20,6 +28,7 @@ import { mapState } from 'vuex';
 import CookieConsent from '~/components/global/CookieConsent';
 import InstallPrompt from '~/components/global/InstallPrompt';
 import SearchForm from '~/components/global/SearchForm';
+import AdvancedSearchForm from '~/components/search/AdvancedSearchForm';
 import Nav from '~/components/global/Nav';
 import Footer from '~/components/global/Footer';
 
@@ -28,14 +37,28 @@ export default {
     CookieConsent,
     InstallPrompt,
     SearchForm,
+    AdvancedSearchForm,
     Nav,
     Footer,
+  },
+
+  data() {
+    return {
+      showAdvancedSearch: false
+    }
   },
 
   computed: {
     ...mapState('search', [
       'searchOpen',
     ]),
+  },
+
+  methods: {
+    handleAdvancedSearchCompleted() {
+      this.showAdvancedSearch = false
+      this.$router.push({ name: 'search' })
+    }
   },
 
   async mounted() {
@@ -57,7 +80,7 @@ export default {
   min-height: 100vh;
 
   @media (max-width: $breakpoint-small) {
-    padding-top: 6rem; // Smaller padding for mobile
+    padding-top: 7rem; // Space for mobile header with logo
     padding-bottom: 8rem; // Space for mobile bottom navigation
   }
 }

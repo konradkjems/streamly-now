@@ -9,7 +9,7 @@
             exact
             :to="{ name: 'index' }"
             aria-label="Home">
-            <span :class="$style.logoText">Streamly</span>
+            <span :class="$style.logoText">STREAMLY</span>
           </nuxt-link>
         </div>
 
@@ -152,6 +152,76 @@
     </transition>
     </nav>
 
+    <!-- Mobile Header with Logo -->
+    <header :class="$style.mobileHeader">
+      <div :class="$style.mobileHeaderContent">
+        <!-- Mobile Logo -->
+        <div :class="$style.mobileLogo">
+          <nuxt-link
+            exact
+            :to="{ name: 'index' }"
+            aria-label="Home">
+            <span :class="$style.mobileLogoText">STREAMLY</span>
+          </nuxt-link>
+        </div>
+        
+        <!-- Mobile Header Actions -->
+        <div :class="$style.mobileHeaderActions">
+          <!-- Search Button -->
+          <button
+            class="search-toggle"
+            :class="$style.searchBtn"
+            type="button"
+            aria-label="Search"
+            aria-haspopup="true"
+            :aria-expanded="`${searchOpen}`"
+            @click="toggleSearch">
+            <!-- eslint-disable-next-line -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-miterlimit="10"><path d="M16.4 16.7l6.3 6.5"/><ellipse cx="10.5" cy="9.8" rx="9.2" ry="9.1"/></g></svg>
+          </button>
+          
+          <!-- User Menu (Mobile) -->
+          <div v-if="isAuthenticated" :class="$style.mobileUserMenu">
+            <button
+              :class="$style.userBtn"
+              type="button"
+              aria-label="User Menu"
+              @click="toggleUserMenu">
+              <span :class="$style.userAvatar">
+                {{ userInitials }}
+              </span>
+            </button>
+            
+            <!-- User Dropdown (Mobile) -->
+            <div v-if="userMenuOpen" :class="$style.mobileUserDropdown">
+              <div :class="$style.userInfo">
+                <div :class="$style.userName">{{ currentProfile?.display_name || 'User' }}</div>
+                <div :class="$style.userEmail">{{ currentUser?.email }}</div>
+              </div>
+              <div :class="$style.userActions">
+                <nuxt-link :to="{ name: 'profile' }" :class="$style.userLink" @click="closeUserMenu">
+                  Profile
+                </nuxt-link>
+                <nuxt-link :to="{ name: 'watchlist' }" :class="$style.userLink" @click="closeUserMenu">
+                  My Watchlist
+                </nuxt-link>
+                <button :class="$style.userLink" type="button" @click="handleSignOut">
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Auth Buttons (Mobile) -->
+          <div v-else :class="$style.mobileAuthButtons">
+            <nuxt-link :to="{ name: 'auth-signin' }" :class="$style.mobileAuthBtn">
+              Sign In
+            </nuxt-link>
+          </div>
+        </div>
+      </div>
+    </header>
+
     <!-- Mobile Bottom Navigation -->
     <nav :class="$style.mobileBottomNav">
       <div :class="$style.mobileNavContent">
@@ -278,6 +348,10 @@ export default {
 
     toggleUserMenu() {
       this.userMenuOpen = !this.userMenuOpen;
+    },
+
+    closeUserMenu() {
+      this.userMenuOpen = false;
     },
 
     async handleSignOut() {
@@ -874,9 +948,115 @@ export default {
   transition: all 0.3s ease;
 }
 
-// Adjust main content padding for mobile bottom nav
+// Mobile Header Styles
+.mobileHeader {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.7) 70%, transparent 100%);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  
+  @media (max-width: $breakpoint-small) {
+    display: block;
+  }
+}
+
+.mobileHeaderContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.2rem 1.6rem;
+  max-width: 100%;
+}
+
+.mobileLogo {
+  flex-shrink: 0;
+  
+  a {
+    text-decoration: none;
+    outline: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+.mobileLogoText {
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: $primary-color;
+  letter-spacing: -0.5px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    color: lighten($primary-color, 10%);
+    text-shadow: 0 2px 8px rgba(229, 9, 20, 0.4);
+  }
+}
+
+.mobileHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.mobileUserMenu {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.mobileUserDropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 1002;
+  width: 24rem;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 1.6rem;
+  margin-top: 0.8rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.mobileAuthButtons {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.mobileAuthBtn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.6rem 1.2rem;
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: #fff;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  outline: 0;
+  -webkit-tap-highlight-color: transparent;
+
+  &:hover,
+  &:active {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-1px);
+  }
+}
+
+// Adjust main content padding for mobile header and bottom nav
 @media (max-width: $breakpoint-small) {
   :global(.main-content) {
+    padding-top: 7rem; // Space for mobile header
     padding-bottom: 8rem; // Space for bottom navigation
   }
   

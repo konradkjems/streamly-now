@@ -58,6 +58,7 @@
         <VidKingPlayer
           :movie-id="item.id"
           :title="name"
+          :poster-path="item.poster_path"
           type="tv"
           :season="selectedSeason"
           :episode="selectedEpisode" />

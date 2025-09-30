@@ -27,6 +27,10 @@ export default {
 
   methods: {
     calculateState (numberOfItems) {
+      if (!this.$refs.carouselElement || !this.$refs.carouselElement.firstChild) {
+        return;
+      }
+
       let unusableVisibleWidth = 72;
       const elementWidth = this.$refs.carouselElement.firstChild.getBoundingClientRect().width;
       const carouselWidth = numberOfItems * elementWidth;
@@ -48,13 +52,22 @@ export default {
     },
 
     moveTo (width) {
-      this.$refs.carouselElement.scrollTo({
-        left: width,
-        behavior: 'smooth',
-      });
+      if (this.$refs.carouselElement && this.$refs.carouselElement.scrollTo) {
+        this.$refs.carouselElement.scrollTo({
+          left: width,
+          behavior: 'smooth',
+        });
+      } else if (this.$refs.carouselElement) {
+        // Fallback for browsers that don't support scrollTo
+        this.$refs.carouselElement.scrollLeft = width;
+      }
     },
 
     moveToClickEvent (direction) {
+      if (!this.$refs.carouselElement) {
+        return;
+      }
+
       const invisible = this.$refs.carouselElement.scrollLeft + (direction === 'left' ? -this.visibleWidth + 1 : this.visibleWidth);
       const remainder = invisible - invisible % this.elementWidth;
 
@@ -62,6 +75,10 @@ export default {
     },
 
     scrollEvent () {
+      if (!this.$refs.carouselElement) {
+        return;
+      }
+
       const scrollLeft = this.$refs.carouselElement.scrollLeft;
       const end = this.maximumPosition - this.visibleWidth - this.elementWidth;
 

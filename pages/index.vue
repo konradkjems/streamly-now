@@ -6,6 +6,9 @@
     <!-- Continue Watching Section -->
     <ContinueWatching />
 
+    <!-- Because You Watched Section (for authenticated users) -->
+    <BecauseYouWatched v-if="isAuthenticated" />
+
     <ListingCarousel
       v-if="trendingMovies && trendingMovies.results.length"
       :title="trendingMoviesTitle"
@@ -17,23 +20,33 @@
       :title="trendingTvTitle"
       :view-all-url="trendingTvUrl"
       :items="trendingTv" />
+
+    <!-- Genre Navigation -->
+    <GenreNavigation />
   </main>
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
 import { getTrending, getMovie, getTvShow, getListItem } from '~/api';
 import Hero from '~/components/Hero';
 import ListingCarousel from '~/components/ListingCarousel';
 import ContinueWatching from '~/components/ContinueWatching';
+import BecauseYouWatched from '~/components/BecauseYouWatched';
+import GenreNavigation from '~/components/GenreNavigation';
 
 export default {
   components: {
     Hero,
     ListingCarousel,
     ContinueWatching,
+    BecauseYouWatched,
+    GenreNavigation,
   },
 
   computed: {
+    ...mapGetters('auth', ['isAuthenticated']),
+
     trendingMoviesTitle () {
       return getListItem('movie', 'trending').title;
     },
