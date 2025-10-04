@@ -514,3 +514,71 @@ export function getYouTubeVideo (id) {
       });
   });
 };
+
+/**
+ * Get trending movies
+ */
+export function getTrendingMovies (page = 1) {
+  return getTrending('movie', page);
+};
+
+/**
+ * Get trending TV shows
+ */
+export function getTrendingTV (page = 1) {
+  return getTrending('tv', page);
+};
+
+/**
+ * Get movie recommendations
+ */
+export function getMovieRecommendations (id, page = 1) {
+  return getMovieRecommended(id, page);
+};
+
+/**
+ * Get TV show recommendations
+ */
+export function getTVRecommendations (id, page = 1) {
+  return getTvShowRecommended(id, page);
+};
+
+/**
+ * Get movie discover
+ */
+export function getMovieDiscover (params = {}) {
+  return new Promise((resolve, reject) => {
+    axios.get(`${apiUrl}/discover/movie`, {
+      params: {
+        api_key: process.env.API_KEY,
+        language: process.env.API_LANG,
+        ...params,
+      },
+    }).then((response) => {
+      resolve(response.data);
+    })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+};
+
+/**
+ * Get TV show discover
+ */
+export function getTvDiscover (params = {}) {
+  return new Promise((resolve, reject) => {
+    axios.get(`${apiUrl}/discover/tv`, {
+      params: {
+        api_key: process.env.API_KEY,
+        language: process.env.API_LANG,
+        ...params,
+      },
+    }).then((response) => {
+      resolve(response.data);
+    })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+};

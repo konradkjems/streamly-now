@@ -57,6 +57,10 @@ export default {
       type: [String, Number],
       default: null,
     },
+    posterPath: {
+      type: String,
+      default: null,
+    },
     showDebugInfo: {
       type: Boolean,
       default: false, // Set to true for debugging
@@ -168,7 +172,7 @@ export default {
             id: this.movieId,
             title: this.type === 'movie' ? this.title : null,
             name: this.type === 'tv' ? this.title : null,
-            poster_path: null,
+            poster_path: this.posterPath,
             runtime: this.totalDuration ? Math.floor(this.totalDuration / 60) : null
           }, this.getSeasonNumber(), this.getEpisodeNumber())
           this.hasTrackedStart = true
@@ -226,7 +230,7 @@ export default {
           id: this.movieId,
           title: this.type === 'movie' ? this.title : null,
           name: this.type === 'tv' ? this.title : null,
-          poster_path: null,
+          poster_path: this.posterPath,
           runtime: this.totalDuration ? Math.floor(this.totalDuration / 60) : null
         }, this.getSeasonNumber(), this.getEpisodeNumber())
         this.hasTrackedStart = true
@@ -284,7 +288,7 @@ export default {
           id: this.movieId,
           title: this.type === 'movie' ? this.title : null,
           name: this.type === 'tv' ? this.title : null,
-          poster_path: null,
+          poster_path: this.posterPath,
           runtime: this.totalDuration ? Math.floor(this.totalDuration / 60) : null
         }, this.currentWatchDuration, this.getSeasonNumber(), this.getEpisodeNumber())
       }
@@ -296,7 +300,7 @@ export default {
         id: this.movieId,
         title: this.type === 'movie' ? this.title : null,
         name: this.type === 'tv' ? this.title : null,
-        poster_path: null,
+        poster_path: this.posterPath,
         runtime: this.totalDuration ? Math.floor(this.totalDuration / 60) : null
       }, this.getSeasonNumber(), this.getEpisodeNumber())
     },

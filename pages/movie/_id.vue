@@ -23,6 +23,7 @@
       <VidKingPlayer
         :movie-id="item.id"
         :title="name"
+        :poster-path="item.poster_path"
         type="movie" />
     </template>
 
