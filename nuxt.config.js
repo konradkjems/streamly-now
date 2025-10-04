@@ -110,6 +110,7 @@ export default {
     "~/plugins/filters.js",
     "~/plugins/supabase.js",
     { src: "~/plugins/ga.js", ssr: false },
+    { src: "~/plugins/vercel-analytics.js", ssr: false },
   ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components

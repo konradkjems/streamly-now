@@ -51,48 +51,112 @@
 @import '~/assets/css/utilities/_variables.scss';
 
 .footer {
-  padding: 2rem 1.5rem 6.5rem;
+  padding: 3rem 1.5rem 7rem;
   color: $text-color-grey;
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.8) 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
 
   @media (min-width: $breakpoint-small) {
-    padding-right: 4rem;
-    padding-left: 4rem;
+    padding: 3rem 4rem 7rem;
   }
 
   @media (min-width: $breakpoint-large) {
-    padding: 2rem 5rem;
+    padding: 3rem 5rem 2rem;
   }
 
   p {
-    margin: 0.3rem 0;
+    margin: 0.5rem 0;
     font-size: 1.4rem;
+    line-height: 1.6;
+    transition: color 0.3s ease;
   }
 
   a {
     color: $text-color-grey;
-    text-decoration: underline;
+    text-decoration: none;
+    position: relative;
+    transition: color 0.3s ease;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 0;
+      height: 1px;
+      background: $primary-color;
+      transition: width 0.3s ease;
+    }
+
+    &:hover {
+      color: #fff;
+
+      &::after {
+        width: 100%;
+      }
+    }
   }
 
   ul {
     display: flex;
-    margin: 2rem 0 0 -0.5rem;
+    gap: 0.5rem;
+    margin: 2.5rem 0 0;
 
     a {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 4.4rem;
-      height: 4.4rem;
+      width: 4.8rem;
+      height: 4.8rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, $primary-color, lighten($primary-color, 10%));
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        border-radius: 50%;
+      }
+
+      &::after {
+        display: none;
+      }
 
       svg {
-        transition: all 0.3s ease-in-out;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        z-index: 1;
       }
 
       &:hover,
       &:focus {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: $primary-color;
+        transform: translateY(-5px) scale(1.1);
+        box-shadow: 0 8px 24px rgba(229, 9, 20, 0.4);
+
+        &::before {
+          opacity: 0.15;
+        }
+
         svg {
           fill: #fff;
+          transform: scale(1.1);
         }
+      }
+
+      &:active {
+        transform: translateY(-3px) scale(1.05);
       }
     }
   }

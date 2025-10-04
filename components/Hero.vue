@@ -178,6 +178,8 @@ export default {
   height: 50rem;
   color: #999;
   background-color: #000;
+  position: relative;
+  overflow: hidden;
 
   @media (min-width: $breakpoint-xsmall) {
     height: 60rem;
@@ -188,6 +190,18 @@ export default {
     display: block;
     height: 0;
     padding-bottom: 56.25%; // 16:9 aspect ratio
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at top right, rgba(229, 9, 20, 0.15) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 1;
   }
 }
 
@@ -214,10 +228,24 @@ export default {
     left: 0;
     display: block;
     content: '';
-    background-image: linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.1) 100%);
+    background: linear-gradient(to top, 
+      rgba(0, 0, 0, 1) 0%, 
+      rgba(0, 0, 0, 0.8) 20%,
+      rgba(0, 0, 0, 0.4) 50%, 
+      rgba(0, 0, 0, 0.2) 70%,
+      rgba(0, 0, 0, 0.1) 100%
+    );
+    z-index: 1;
 
     @media (min-width: $breakpoint-medium) {
-      background-image: linear-gradient(to right, #000 0, transparent 50%, transparent 100%);
+      background: linear-gradient(to right, 
+        rgba(0, 0, 0, 1) 0%, 
+        rgba(0, 0, 0, 0.95) 10%,
+        rgba(0, 0, 0, 0.8) 25%, 
+        rgba(0, 0, 0, 0.3) 50%, 
+        transparent 70%, 
+        transparent 100%
+      );
     }
   }
 
@@ -234,28 +262,49 @@ export default {
   position: absolute;
   top: 50%;
   left: 50%;
-  z-index: 1;
+  z-index: 2;
   padding: 2rem;
   margin: 0;
-  background: rgba(0, 0, 0, 0.8);
-  border: 3px solid #fff;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  border: 3px solid rgba(255, 255, 255, 0.8);
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 
   @media (min-width: $breakpoint-medium) {
     display: none;
   }
 
+  &::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, $primary-color, #B81D13);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    z-index: -1;
+  }
+
   &:hover {
-    background: rgba(229, 9, 20, 0.9);
-    border-color: $primary-color;
-    transform: translate(-50%, -50%) scale(1.1);
+    background: rgba(229, 9, 20, 0.95);
+    border-color: transparent;
+    transform: translate(-50%, -50%) scale(1.15);
+    box-shadow: 0 12px 48px rgba(229, 9, 20, 0.6);
+
+    &::before {
+      opacity: 1;
+    }
   }
 
   &:active {
-    transform: translate(-50%, -50%) scale(0.95);
+    transform: translate(-50%, -50%) scale(1.05);
   }
 
   svg {
@@ -292,6 +341,8 @@ export default {
 
 .pane {
   padding: 0 1.5rem 1.5rem;
+  position: relative;
+  z-index: 2;
 
   @media (min-width: $breakpoint-small) {
     padding: 0 4rem 4rem;
@@ -302,7 +353,6 @@ export default {
     top: 0;
     bottom: 0;
     left: 0;
-    z-index: 1;
     display: flex;
     align-items: center;
     width: 55%;
@@ -430,35 +480,85 @@ export default {
   background: linear-gradient(135deg, #E50914 0%, #B81D13 100%);
   border: none;
   box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
 
   &:hover {
     background: linear-gradient(135deg, #B81D13 0%, #8B1538 100%);
-    box-shadow: 0 6px 20px rgba(229, 9, 20, 0.6);
-    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(229, 9, 20, 0.6);
+    transform: translateY(-3px);
+
+    &::before {
+      width: 300px;
+      height: 300px;
+    }
   }
 
   &:active {
-    transform: translateY(0);
+    transform: translateY(-1px);
   }
 
   .icon {
     margin-right: 0.8rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .txt {
+    position: relative;
+    z-index: 1;
   }
 }
 
 .trailer {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(15px);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.6s;
+  }
 
   &:hover {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+
+    &::after {
+      left: 100%;
+    }
+  }
+
+  &:active {
+    transform: translateY(-1px);
   }
 }
 </style>

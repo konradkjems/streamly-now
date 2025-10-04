@@ -89,6 +89,29 @@ export const actions = {
     }
   },
 
+  async signInWithGoogle({ commit }) {
+    commit('SET_LOADING', true)
+    commit('SET_ERROR', null)
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      })
+      
+      if (error) throw error
+      
+      return data
+    } catch (error) {
+      commit('SET_ERROR', error.message)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
   async signOut({ commit }) {
     commit('SET_LOADING', true)
     
