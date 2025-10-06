@@ -44,6 +44,16 @@ export default {
     GenreNavigation,
   },
 
+  async mounted() {
+    // Check if we have OAuth callback tokens in the URL hash
+    const hash = window.location.hash
+    if (hash && hash.includes('access_token')) {
+      // Redirect to the proper callback page to handle authentication
+      this.$router.replace('/auth/callback')
+      return
+    }
+  },
+
   computed: {
     ...mapGetters('auth', ['isAuthenticated']),
 

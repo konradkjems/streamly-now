@@ -16,7 +16,38 @@ export default {
   
   async mounted() {
     try {
-      // Handle the OAuth callback
+      // Check if we have URL hash parameters (OAuth callback tokens)
+      const hash = window.location.hash
+      if (hash && hash.includes('access_token')) {
+        // Parse the hash parameters
+        const hashParams = new URLSearchParams(hash.substring(1))
+        const accessToken = hashParams.get('access_token')
+        const refreshToken = hashParams.get('refresh_token')
+        const tokenType = hashParams.get('token_type')
+        
+        if (accessToken) {
+          // Set the session manually with the tokens from the hash
+          const { data, error } = await this.$supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          })
+          
+          if (error) {
+            console.error('Auth callback error:', error)
+            this.$router.push('/auth/signin?error=callback_failed')
+            return
+          }
+          
+          if (data.session) {
+            // Clear the hash from URL and redirect to home
+            window.history.replaceState(null, null, window.location.pathname)
+            this.$router.push('/')
+            return
+          }
+        }
+      }
+      
+      // Handle normal OAuth callback (when redirected properly)
       const { data, error } = await this.$supabase.auth.getSession()
       
       if (error) {
