@@ -94,10 +94,13 @@ export const actions = {
     commit('SET_ERROR', null)
     
     try {
+      // Use FRONTEND_URL from environment if available, otherwise fall back to window.location.origin
+      const redirectUrl = process.env.FRONTEND_URL || window.location.origin
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: `${redirectUrl}/auth/callback`
         }
       })
       
