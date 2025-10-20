@@ -145,6 +145,7 @@ export default {
   mounted() {
     if (this.continueWatchingItems.length > 0) {
       this.calculateState(this.continueWatchingItems.length)
+      this.showContinueWatchingNotification()
     }
   },
 
@@ -228,6 +229,23 @@ export default {
         })
       } catch (error) {
         console.error('Error recording viewing click:', error)
+      }
+    },
+
+    async showContinueWatchingNotification() {
+      // Show notification for the most recent item to continue watching
+      if (this.continueWatchingItems.length > 0 && this.$notifications) {
+        const mostRecent = this.continueWatchingItems[0]
+        const progress = this.getProgress(mostRecent)
+        
+        try {
+          await this.$notifications.showContinueWatchingNotification(
+            mostRecent.media_title,
+            progress
+          )
+        } catch (error) {
+          console.log('Continue watching notification failed:', error)
+        }
       }
     }
   }

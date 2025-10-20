@@ -80,6 +80,19 @@ export const actions = {
       if (error) throw error
       
       commit('ADD_TO_WATCHLIST', data)
+      
+      // Show notification if available
+      if (process.client && this.app && this.app.$notifications) {
+        try {
+          await this.app.$notifications.showWatchlistNotification(
+            mediaData.media_title,
+            mediaData.media_type
+          )
+        } catch (error) {
+          console.log('Notification failed:', error)
+        }
+      }
+      
       return data
     } catch (error) {
       commit('SET_ERROR', error.message)

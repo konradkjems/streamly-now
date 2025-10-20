@@ -142,10 +142,15 @@ export default {
 
   watch: {
     recommendations: {
-      handler() {
+      handler(newRecommendations, oldRecommendations) {
         this.$nextTick(() => {
           this.initializeCarousels()
         })
+        
+        // Show notification for new recommendations
+        if (newRecommendations.length > 0 && oldRecommendations && oldRecommendations.length === 0) {
+          this.showRecommendationNotification()
+        }
       },
       deep: true
     }
@@ -204,6 +209,26 @@ export default {
         this.$refs.carouselElement = this.$refs[carouselRef][0]
         // Call the mixin's moveToClickEvent method
         this.$options.mixins[0].methods.moveToClickEvent.call(this, direction)
+      }
+    },
+
+    async showRecommendationNotification() {
+      // Show notification for new recommendations
+      if (this.recommendations.length > 0 && this.$notifications) {
+        const firstGroup = this.recommendations[0]
+        if (firstGroup && firstGroup.recommendations && firstGroup.recommendations.length > 0) {
+          const firstRecommendation = firstGroup.recommendations[0]
+          const basedOn = firstGroup.basedOn.title
+          
+          try {
+            await this.$notifications.showRecommendationNotification(
+              firstRecommendation.title || firstRecommendation.name,
+              basedOn
+            )
+          } catch (error) {
+            console.log('Recommendation notification failed:', error)
+          }
+        }
       }
     }
   }

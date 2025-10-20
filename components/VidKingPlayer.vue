@@ -26,6 +26,7 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
 import ViewingTracker from '~/mixins/ViewingTracker'
 
 export default {
@@ -80,6 +81,8 @@ export default {
   },
 
   computed: {
+    ...mapGetters('auth', ['currentPreferences']),
+    
     vidkingEmbedUrl: function () {
       var baseUrl = 'https://www.vidking.net/embed/' + this.type + '/' + this.movieId;
       
@@ -88,9 +91,35 @@ export default {
         baseUrl += '/' + this.season + '/' + this.episode;
       }
       
-      // Use the specified parameters
-      var params = 'color=e50914&autoPlay=true&nextEpisode=true&episodeSelector=true';
-      return baseUrl + '?' + params;
+      // Get user preferences or use defaults
+      const preferences = this.currentPreferences || {};
+      const autoPlay = preferences.auto_play !== false; // Default to true if not set
+      const videoQuality = preferences.video_quality || 'auto';
+      const subtitleLanguage = preferences.subtitle_language || 'en';
+      
+      // Build parameters with user preferences
+      var params = [
+        'color=e50914',
+        `autoPlay=${autoPlay}`,
+        'nextEpisode=true',
+        'episodeSelector=true'
+      ];
+      
+      // Add video quality if specified
+      if (videoQuality !== 'auto') {
+        params.push(`quality=${videoQuality}`);
+      }
+      
+      // Add subtitle language if not 'off'
+      // NOTE: VidKing's actual parameter name may vary. Common alternatives:
+      // - subtitle=, subtitleLang=, subs=, cc=, captions=
+      // If subtitles still don't show, check browser console for VidKing messages
+      // and verify what parameter names VidKing actually accepts
+      if (subtitleLanguage && subtitleLanguage !== 'off') {
+        params.push(`subtitle=${subtitleLanguage}`);
+      }
+      
+      return baseUrl + '?' + params.join('&');
     },
   },
 
@@ -161,6 +190,26 @@ export default {
     handleMediaData(data) {
       console.log('Media data received:', data)
       
+      // Check for subtitle availability
+      if (data.data && data.data.subtitles) {
+        console.log('Available subtitle tracks:', data.data.subtitles)
+        const preferences = this.currentPreferences || {}
+        const subtitleLanguage = preferences.subtitle_language || 'en'
+        
+        if (subtitleLanguage && subtitleLanguage !== 'off') {
+          const hasPreferredLanguage = data.data.subtitles.some(
+            sub => sub.language === subtitleLanguage || sub.lang === subtitleLanguage
+          )
+          
+          if (!hasPreferredLanguage) {
+            console.warn(`⚠️ Subtitle language '${subtitleLanguage}' not available for this video. Available languages:`, 
+              data.data.subtitles.map(s => s.language || s.lang))
+          } else {
+            console.log(`✅ Subtitle language '${subtitleLanguage}' is available`)
+          }
+        }
+      }
+      
       // Store media information
       if (data.data.progress) {
         this.totalDuration = data.data.progress.duration
@@ -211,6 +260,24 @@ export default {
       console.log('VidKing iframe loaded')
       // Try to establish communication with the iframe
       this.sendMessageToIframe({ type: 'request_duration' })
+      
+      // Also try to set subtitle preferences via postMessage
+      // VidKing might not support URL parameters for subtitles
+      const preferences = this.currentPreferences || {}
+      const subtitleLanguage = preferences.subtitle_language || 'en'
+      
+      if (subtitleLanguage && subtitleLanguage !== 'off') {
+        console.log('Attempting to enable subtitles via postMessage:', subtitleLanguage)
+        this.sendMessageToIframe({ 
+          type: 'set_subtitle', 
+          language: subtitleLanguage 
+        })
+        // Also try alternative parameter names
+        this.sendMessageToIframe({ 
+          type: 'enable_subtitles', 
+          lang: subtitleLanguage 
+        })
+      }
     },
 
     sendMessageToIframe(message) {
