@@ -15,6 +15,12 @@
       @close="showAdvancedSearch = false"
       @search-completed="handleAdvancedSearchCompleted" />
 
+    <!-- Shortcuts Modal -->
+    <ShortcutsModal />
+
+    <!-- Toast Notifications -->
+    <Toast />
+
     <Nav />
     <main class="main-content">
       <nuxt />
@@ -29,6 +35,8 @@ import CookieConsent from '~/components/global/CookieConsent';
 import InstallPrompt from '~/components/global/InstallPrompt';
 import SearchForm from '~/components/global/SearchForm';
 import AdvancedSearchForm from '~/components/search/AdvancedSearchForm';
+import ShortcutsModal from '~/components/global/ShortcutsModal';
+import Toast from '~/components/global/Toast';
 import Nav from '~/components/global/Nav';
 import Footer from '~/components/global/Footer';
 
@@ -38,6 +46,8 @@ export default {
     InstallPrompt,
     SearchForm,
     AdvancedSearchForm,
+    ShortcutsModal,
+    Toast,
     Nav,
     Footer,
   },

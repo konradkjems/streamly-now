@@ -26,11 +26,21 @@ export default {
   }
 }
 
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
 .skeletonCard {
   margin-bottom: 1.5rem;
   border-radius: 8px;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.03);
+  animation: fadeIn 0.3s ease-in;
 
   @media (min-width: $breakpoint-xsmall) {
     margin-bottom: 2rem;
@@ -44,11 +54,11 @@ export default {
   background: linear-gradient(
     90deg,
     rgba(255, 255, 255, 0.05) 0%,
-    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.15) 50%,
     rgba(255, 255, 255, 0.05) 100%
   );
-  background-size: 1000px 100%;
-  animation: shimmer 2s infinite;
+  background-size: 2000px 100%;
+  animation: shimmer 1.5s infinite;
   border-radius: 8px;
 }
 
@@ -65,11 +75,11 @@ export default {
   background: linear-gradient(
     90deg,
     rgba(255, 255, 255, 0.05) 0%,
-    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.15) 50%,
     rgba(255, 255, 255, 0.05) 100%
   );
-  background-size: 1000px 100%;
-  animation: shimmer 2s infinite;
+  background-size: 2000px 100%;
+  animation: shimmer 1.5s infinite;
   border-radius: 4px;
   margin-bottom: 0.8rem;
 }
@@ -80,12 +90,12 @@ export default {
   background: linear-gradient(
     90deg,
     rgba(255, 255, 255, 0.05) 0%,
-    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.15) 50%,
     rgba(255, 255, 255, 0.05) 100%
   );
-  background-size: 1000px 100%;
-  animation: shimmer 2s infinite;
-  animation-delay: 0.2s;
+  background-size: 2000px 100%;
+  animation: shimmer 1.5s infinite;
+  animation-delay: 0.3s;
   border-radius: 4px;
 }
 </style>

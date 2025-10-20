@@ -54,6 +54,11 @@
                   <path d="M8 5v14l11-7z"/>
                 </svg>
               </div>
+
+              <!-- Next Episode Badge for TV Shows -->
+              <div v-if="item.media_type === 'tv' && getProgressPercentage(item) > 80" class="card__next-badge">
+                <span>Next Episode</span>
+              </div>
             </div>
 
             <h2 class="card__name">
@@ -131,14 +136,17 @@ export default {
     continueWatchingItems() {
       const items = this.continueWatching.slice(0, 10) // Limit to 10 items
       
+      // Group TV shows by series
+      const grouped = this.groupBySeries(items)
+      
       // Debug logging
       if (process.client) {
         console.log('ContinueWatching - continueWatching getter:', this.continueWatching)
-        console.log('ContinueWatching - continueWatchingItems:', items)
+        console.log('ContinueWatching - continueWatchingItems:', grouped)
         console.log('ContinueWatching - isAuthenticated:', this.isAuthenticated)
       }
       
-      return items
+      return grouped
     }
   },
 
@@ -164,6 +172,28 @@ export default {
 
   methods: {
     ...mapActions('viewingHistory', ['recordViewing']),
+
+    groupBySeries(items) {
+      // Group TV shows by series, keeping only the most recent episode
+      const tvShows = {}
+      const movies = []
+      
+      items.forEach(item => {
+        if (item.media_type === 'tv') {
+          const key = `${item.media_id}-${item.season_number}`
+          
+          // Keep only the most recent episode for each season
+          if (!tvShows[key] || item.episode_number > tvShows[key].episode_number) {
+            tvShows[key] = item
+          }
+        } else {
+          movies.push(item)
+        }
+      })
+      
+      // Combine and return
+      return [...Object.values(tvShows), ...movies].slice(0, 10)
+    },
 
     getItemUrl(item) {
       if (item.media_type === 'tv') {
@@ -313,6 +343,32 @@ export default {
     font-size: 1rem;
     font-weight: 600;
     color: $primary-color;
+  }
+
+  .card__next-badge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    background: rgba(0, 255, 136, 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #000;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    z-index: 3;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
+    }
   }
 }
 

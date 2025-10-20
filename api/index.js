@@ -496,6 +496,13 @@ export function search (query, page = 1) {
 };
 
 /**
+ * Get search multi (alias for search function)
+ */
+export function getSearchMulti (query, page = 1) {
+  return search(query, page);
+};
+
+/**
  * Get YouTube video info
  */
 export function getYouTubeVideo (id) {
