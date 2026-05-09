@@ -19,52 +19,6 @@
         :people="item.credits.cast" />
     </template>
 
-    <template v-if="activeMenu === 'watch'">
-      <div class="watch-section">
-        <div class="season-episode-selector">
-          <div class="selector-group">
-            <label for="season-select">Season:</label>
-            <select 
-              id="season-select"
-              v-model="selectedSeason" 
-              @change="onSeasonChange"
-              class="selector">
-              <option 
-                v-for="season in availableSeasons" 
-                :key="season" 
-                :value="season">
-                Season {{ season }}
-              </option>
-            </select>
-          </div>
-          
-          <div class="selector-group">
-            <label for="episode-select">Episode:</label>
-            <select 
-              id="episode-select"
-              v-model="selectedEpisode" 
-              @change="onEpisodeChange"
-              class="selector">
-              <option 
-                v-for="episode in availableEpisodes" 
-                :key="episode" 
-                :value="episode">
-                Episode {{ episode }}
-              </option>
-            </select>
-          </div>
-        </div>
-        
-        <VidKingPlayer
-          :movie-id="item.id"
-          :title="name"
-          :poster-path="item.poster_path"
-          type="tv"
-          :season="selectedSeason"
-          :episode="selectedEpisode" />
-      </div>
-    </template>
-
     <template v-if="activeMenu === 'episodes' && showEpisodes">
       <Episodes
         :number-of-seasons="item.number_of_seasons"
@@ -95,17 +49,29 @@
       v-if="recommended && recommended.results.length"
       title="More Like This"
       :items="recommended" />
+
+    <WatchOverlay
+      :visible="watchOpen"
+      :media-id="item.id"
+      :title="name"
+      :poster-path="item.poster_path"
+      type="tv"
+      :seasons="seasonsMeta"
+      :initial-season="initialSeason"
+      :initial-episode="initialEpisode"
+      @close="closeWatch" />
   </main>
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 import { apiImgUrl, getTvShow, getTvShowRecommended } from '~/api';
 import { name, yearStart, yearEnd } from '~/mixins/Details';
 import TopNav from '~/components/global/TopNav';
 import Hero from '~/components/Hero';
 import MediaNav from '~/components/MediaNav';
 import TvInfo from '~/components/tv/TvInfo';
-import VidKingPlayer from '~/components/VidKingPlayer';
+import WatchOverlay from '~/components/WatchOverlay';
 import Videos from '~/components/Videos';
 import Images from '~/components/Images';
 import Credits from '~/components/Credits';
@@ -118,7 +84,7 @@ export default {
     Hero,
     MediaNav,
     TvInfo,
-    VidKingPlayer,
+    WatchOverlay,
     Videos,
     Images,
     Credits,
@@ -153,12 +119,16 @@ export default {
       menu: [],
       activeMenu: 'overview',
       recommended: null,
-      selectedSeason: 1,
-      selectedEpisode: 1,
+      watchOpen: false,
+      // Season/episode the overlay should open with - populated when watchOpen flips on
+      initialSeason: 1,
+      initialEpisode: 1,
     };
   },
 
   computed: {
+    ...mapGetters('viewingHistory', ['lastWatchedForMedia']),
+
     metaTitle () {
       if (this.item.status === 'Ended' && this.yearStart && this.yearEnd) {
         return `${this.name} (TV Series ${this.yearStart}-${this.yearEnd})`;
@@ -204,23 +174,25 @@ export default {
       return images && ((images.backdrops && images.backdrops.length) || (images.posters && images.posters.length));
     },
 
-    availableSeasons () {
-      const seasons = [];
-      const totalSeasons = this.item.number_of_seasons || 1;
-      for (let i = 1; i <= totalSeasons; i++) {
-        seasons.push(i);
+    // Real seasons metadata from TMDb. Filter out season 0 (specials).
+    // Each entry: { season_number, episode_count, name }
+    seasonsMeta () {
+      if (!this.item.seasons || !this.item.seasons.length) {
+        // Fallback if API didn't return seasons[] - synthesize from number_of_seasons
+        const total = this.item.number_of_seasons || 1;
+        const fallback = [];
+        for (let i = 1; i <= total; i++) {
+          fallback.push({ season_number: i, episode_count: 0, name: `Season ${i}` });
+        }
+        return fallback;
       }
-      return seasons;
-    },
-
-    availableEpisodes () {
-      const episodes = [];
-      // Default to 10 episodes per season if not specified
-      const episodesPerSeason = 10;
-      for (let i = 1; i <= episodesPerSeason; i++) {
-        episodes.push(i);
-      }
-      return episodes;
+      return this.item.seasons
+        .filter((s) => s.season_number > 0)
+        .map((s) => ({
+          season_number: s.season_number,
+          episode_count: s.episode_count,
+          name: s.name,
+        }));
     },
   },
 
@@ -241,22 +213,57 @@ export default {
   created () {
     this.createMenu();
     this.initRecommended();
-    
-    // Check if we should switch to watch tab
-    this.checkWatchTab();
+  },
+
+  mounted () {
+    this.checkWatchQuery();
   },
 
   watch: {
     '$route.query.tab' () {
-      this.checkWatchTab();
+      this.checkWatchQuery();
+    },
+    '$route.query.s' () {
+      this.checkWatchQuery();
+    },
+    '$route.query.e' () {
+      this.checkWatchQuery();
     },
   },
 
   methods: {
-    checkWatchTab () {
-      if (this.$route.query.tab === 'watch') {
-        this.activeMenu = 'watch';
+    checkWatchQuery () {
+      const opening = this.$route.query.tab === 'watch';
+      if (opening) {
+        const { season, episode } = this.resolveStartingEpisode();
+        this.initialSeason = season;
+        this.initialEpisode = episode;
       }
+      this.watchOpen = opening;
+    },
+
+    // Pick where the overlay should start: explicit ?s=&e= wins, then most recent
+    // viewing history for this show, else S1:E1.
+    resolveStartingEpisode () {
+      const qs = parseInt(this.$route.query.s, 10);
+      const qe = parseInt(this.$route.query.e, 10);
+      if (!isNaN(qs) && !isNaN(qe)) {
+        return { season: qs, episode: qe };
+      }
+      const last = this.lastWatchedForMedia({ media_type: 'tv', media_id: this.item.id });
+      if (last && last.season_number && last.episode_number) {
+        return { season: Number(last.season_number), episode: Number(last.episode_number) };
+      }
+      return { season: 1, episode: 1 };
+    },
+
+    closeWatch () {
+      this.watchOpen = false;
+      const query = { ...this.$route.query };
+      delete query.tab;
+      delete query.s;
+      delete query.e;
+      this.$router.replace({ path: this.$route.path, query }).catch(() => {});
     },
 
     truncate (string, length) {
@@ -266,19 +273,12 @@ export default {
     createMenu () {
       const menu = [];
 
-      // overview
       menu.push('Overview');
 
-      // watch
-      menu.push('Watch');
-
-      // episodes
       if (this.showEpisodes) menu.push('Episodes');
 
-      // videos
       if (this.showVideos) menu.push('Videos');
 
-      // images
       if (this.showImages) menu.push('Photos');
 
       this.menu = menu;
@@ -289,7 +289,6 @@ export default {
     },
 
     initRecommended () {
-      // if recommended don't exist, retreive them
       if (this.recommended !== null) return;
 
       getTvShowRecommended(this.$route.params.id).then((response) => {
@@ -297,100 +296,18 @@ export default {
       });
     },
 
-    onSeasonChange () {
-      // Reset episode to 1 when season changes
-      this.selectedEpisode = 1;
-    },
-
-    onEpisodeChange () {
-      // Episode changed, player will update automatically
-    },
-
     onPlayEpisode (episodeData) {
-      // Switch to watch tab and set the selected season/episode
-      this.selectedSeason = episodeData.seasonNumber;
-      this.selectedEpisode = episodeData.episodeNumber;
-      this.activeMenu = 'watch';
+      // Open the overlay at the requested episode
+      this.$router.push({
+        path: this.$route.path,
+        query: {
+          ...this.$route.query,
+          tab: 'watch',
+          s: episodeData.seasonNumber,
+          e: episodeData.episodeNumber,
+        },
+      }).catch(() => {});
     },
   },
 };
 </script>
-
-<style lang="scss" scoped>
-.watch-section {
-  padding: 2rem 0;
-}
-
-.season-episode-selector {
-  display: flex;
-  gap: 2rem;
-  margin-bottom: 2rem;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.selector-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  min-width: 120px;
-}
-
-.selector-group label {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #ccc;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.selector {
-  padding: 0.75rem 1rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
-  color: #fff;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  min-width: 120px;
-}
-
-.selector:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-.selector:focus {
-  outline: none;
-  border-color: #2196f3;
-  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
-}
-
-.selector option {
-  background: #1a1a1a;
-  color: #fff;
-  padding: 0.5rem;
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
-  .season-episode-selector {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 1rem;
-  }
-  
-  .selector-group {
-    min-width: auto;
-  }
-  
-  .selector {
-    min-width: auto;
-    width: 100%;
-  }
-}
-</style>

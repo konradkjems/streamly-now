@@ -1,30 +1,43 @@
 <template>
-  <div class="vidking-player-container">
-    <!-- Player Selector -->
-    <div class="player-selector">
-      <div class="player-selector-header">
-        <span class="player-icon">🎬</span>
-        <label for="player-select">Choose Streaming Provider</label>
-      </div>
-      <div class="player-select-wrapper">
-        <select 
-          id="player-select" 
-          v-model="selectedPlayer" 
-          @change="selectPlayer(selectedPlayer)"
-          class="player-select"
-        >
-          <option 
-            v-for="player in players" 
-            :key="player.value"
-            :value="player.value"
-          >
-            {{ player.icon }} {{ player.name }} - {{ player.badge }}
-          </option>
-        </select>
-      </div>
-    </div>
-
+  <div class="vidking-player-container" :class="{ 'is-fullscreen': fullscreen }">
     <div class="video-container">
+      <!-- Settings (gear) menu - replaces inline provider selector -->
+      <div class="player-settings" @click.stop>
+        <button
+          type="button"
+          class="settings-trigger"
+          aria-label="Player settings"
+          :aria-expanded="settingsOpen ? 'true' : 'false'"
+          @click="settingsOpen = !settingsOpen">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </button>
+
+        <transition name="settings-fade">
+          <div v-if="settingsOpen" class="settings-menu" role="menu">
+            <div class="settings-section">
+              <div class="settings-label">Streaming source</div>
+              <button
+                v-for="player in players"
+                :key="player.value"
+                type="button"
+                role="menuitemradio"
+                :aria-checked="selectedPlayer === player.value ? 'true' : 'false'"
+                class="settings-option"
+                :class="{ 'is-active': selectedPlayer === player.value }"
+                @click="selectPlayer(player.value); settingsOpen = false">
+                <span class="opt-icon">{{ player.icon }}</span>
+                <span class="opt-name">{{ player.name }}</span>
+                <span class="opt-badge">{{ player.badge }}</span>
+                <span v-if="selectedPlayer === player.value" class="opt-check" aria-hidden="true">✓</span>
+              </button>
+            </div>
+          </div>
+        </transition>
+      </div>
+
       <!-- Loading Overlay -->
       <div v-if="playerLoading && !loadError" class="player-loading-overlay">
         <div class="loading-content">
@@ -115,6 +128,10 @@ export default {
       type: String,
       default: null,
     },
+    fullscreen: {
+      type: Boolean,
+      default: false,
+    },
     showDebugInfo: {
       type: Boolean,
       default: false, // Set to true for debugging
@@ -124,6 +141,7 @@ export default {
   data() {
     return {
       selectedPlayer: 'vidking', // Default to VidKing
+      settingsOpen: false,
       watchStartTime: null,
       currentWatchDuration: 0,
       progressUpdateInterval: null,
@@ -189,12 +207,17 @@ export default {
       const videoQuality = preferences.video_quality || 'auto';
       const subtitleLanguage = preferences.subtitle_language || 'en';
       
+      // When mounted in our fullscreen WatchOverlay we own the next-episode UI,
+      // so disable VidKing's built-in next-episode + episode-selector chrome to
+      // avoid duplicate/competing UI. When embedded standalone, keep them on.
+      const ownsNavigation = this.fullscreen;
+
       // Build parameters with user preferences
       var params = [
         'color=e50914',
         `autoPlay=${autoPlay}`,
-        'nextEpisode=true',
-        'episodeSelector=true'
+        `nextEpisode=${!ownsNavigation}`,
+        `episodeSelector=${!ownsNavigation}`
       ];
       
       // Add video quality if specified
@@ -249,12 +272,10 @@ export default {
     
     // Conditionally apply sandbox based on selected player
     getSandboxPermissions() {
-      // Only apply sandbox restrictions to VidKing
-      // Alternative players need more permissions to function
-      if (this.selectedPlayer === 'vidking') {
-        return 'allow-scripts allow-same-origin allow-presentation allow-forms';
-      }
-      // Remove sandbox for alternative players to allow them to work
+      // VidKing actively detects sandbox restrictions and refuses to play
+      // ("Iframe Sandbox Detected" error). Alternative players also need
+      // unrestricted iframes. Popup/redirect abuse is handled by
+      // setupPopupBlocker() rather than the sandbox attribute.
       return undefined;
     },
     
@@ -343,16 +364,19 @@ export default {
 
     handlePlayerEvent(data) {
       console.log('Player event:', data.data.event)
-      
+
       switch (data.data.event) {
         case 'play':
           this.onVideoStarted(data)
+          this.$emit('playing')
           break
         case 'pause':
           this.onVideoPaused(data)
+          this.$emit('paused')
           break
         case 'ended':
           this.onVideoEnded(data)
+          this.$emit('ended')
           break
         case 'timeupdate':
           this.onVideoProgress(data)
@@ -829,87 +853,139 @@ export default {
   max-width: 1200px;
   margin: 0 auto;
   padding: 1rem;
+
+  &.is-fullscreen {
+    max-width: none;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+
+    .video-container {
+      padding-bottom: 0;
+      height: 100%;
+      border-radius: 0;
+    }
+  }
 }
 
-.player-selector {
-  margin-bottom: 1.5rem;
-  background: linear-gradient(135deg, rgba(14, 14, 14, 0.95) 0%, rgba(20, 20, 20, 0.95) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 1.25rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(10px);
-  
-  .player-selector-header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    
-    .player-icon {
-      font-size: 1.5rem;
-      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-    }
-    
-    label {
-      margin: 0;
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: #fff;
-      letter-spacing: 0.5px;
-      cursor: pointer;
-    }
+.player-settings {
+  position: absolute;
+  top: 1.6rem;
+  right: 1.6rem;
+  z-index: 20;
+}
+
+.settings-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 4.4rem;
+  height: 4.4rem;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+  backdrop-filter: blur(8px);
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(0, 0, 0, 0.85);
+    transform: rotate(30deg);
+    outline: none;
   }
-  
-  .player-select-wrapper {
-    position: relative;
+
+  &:focus-visible {
+    box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.6);
   }
-  
-  .player-select {
-    width: 100%;
-    padding: 0.875rem 1rem;
-    padding-right: 3rem;
-    background: rgba(255, 255, 255, 0.05);
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
+
+  svg {
+    display: block;
+  }
+}
+
+.settings-menu {
+  position: absolute;
+  top: 5.2rem;
+  right: 0;
+  min-width: 28rem;
+  background: rgba(15, 15, 15, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 0.8rem 0;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(12px);
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-label {
+  padding: 0.4rem 1.6rem 0.8rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.settings-option {
+  display: grid;
+  grid-template-columns: 2.4rem 1fr auto auto;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 1rem 1.6rem;
+  background: transparent;
+  border: 0;
+  color: #fff;
+  text-align: left;
+  font-size: 1.4rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(255, 255, 255, 0.08);
+    outline: none;
+  }
+
+  &.is-active {
     color: #fff;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23fff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 1rem center;
-    background-size: 1rem;
-    
-    &:hover {
-      background-color: rgba(255, 255, 255, 0.08);
-      border-color: rgba(255, 255, 255, 0.2);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    }
-    
-    &:focus {
-      outline: none;
-      border-color: #e50914;
-      background-color: rgba(255, 255, 255, 0.1);
-      box-shadow: 0 0 20px rgba(229, 9, 20, 0.3);
-    }
-    
-    &:active {
-      transform: translateY(0);
-    }
-    
-    option {
-      background: #1a1a1a;
-      color: #fff;
-      padding: 0.5rem;
-      font-size: 0.95rem;
-    }
   }
+
+  .opt-icon {
+    font-size: 1.6rem;
+  }
+
+  .opt-name {
+    font-weight: 500;
+  }
+
+  .opt-badge {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .opt-check {
+    color: #e50914;
+    font-weight: 700;
+  }
+}
+
+.settings-fade-enter-active,
+.settings-fade-leave-active {
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.settings-fade-enter,
+.settings-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
 }
 
 .video-container {
@@ -1101,49 +1177,51 @@ export default {
 @media (max-width: 768px) {
   .vidking-player-container {
     padding: 0.5rem;
+
+    &.is-fullscreen {
+      padding: 0;
+    }
   }
-  
+
   .video-container {
     border-radius: 4px;
   }
-  
-  .player-selector {
-    padding: 1rem;
-    
-    .player-selector-header {
-      label {
-        font-size: 1rem;
-      }
-    }
-    
-    .player-select {
-      font-size: 0.95rem;
-      padding: 0.75rem 0.875rem;
-      padding-right: 2.5rem;
-    }
+
+  .player-settings {
+    top: 1rem;
+    right: 1rem;
   }
-  
+
+  .settings-trigger {
+    width: 4rem;
+    height: 4rem;
+  }
+
+  .settings-menu {
+    min-width: 24rem;
+  }
+
   .error-content {
     padding: 1rem;
   }
-  
+
   .error-icon {
     font-size: 3rem;
   }
-  
+
   .error-title {
     font-size: 1.25rem;
   }
-  
+
   .error-message {
     font-size: 0.9rem;
   }
-  
+
   .error-actions {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .btn-retry,
   .btn-alternative {
     width: 100%;
@@ -1151,24 +1229,9 @@ export default {
 }
 
 @media (max-width: 480px) {
-  .player-selector {
-    padding: 0.75rem;
-    
-    .player-selector-header {
-      .player-icon {
-        font-size: 1.25rem;
-      }
-      
-      label {
-        font-size: 0.9rem;
-      }
-    }
-    
-    .player-select {
-      font-size: 0.875rem;
-      padding: 0.625rem 0.75rem;
-      padding-right: 2.25rem;
-    }
+  .settings-menu {
+    min-width: 22rem;
+    right: -0.5rem;
   }
 }
 </style>

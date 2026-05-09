@@ -386,18 +386,30 @@ export const getters = {
     return deduplicated
   },
   watchProgress: (state) => ({ media_type, media_id, season_number, episode_number }) => {
-    const item = state.history.find(h => 
-      h.media_type === media_type && 
+    const item = state.history.find(h =>
+      h.media_type === media_type &&
       h.media_id === media_id &&
       h.season_number === season_number &&
       h.episode_number === episode_number
     )
-    
+
     return item ? {
       watch_duration: item.watch_duration,
       total_duration: item.total_duration,
       progress_percentage: item.total_duration > 0 ? (item.watch_duration / item.total_duration) * 100 : 0,
       completed: item.completed
     } : null
+  },
+  // Returns the most recently watched record for a given media (movie or TV show).
+  // For TV, this is the latest episode the user touched - drives the "Resume S3:E5" CTA.
+  // For movies, returns the single record (or null if never started).
+  lastWatchedForMedia: (state) => ({ media_type, media_id }) => {
+    const records = state.history.filter(h =>
+      h.media_type === media_type && h.media_id === media_id
+    )
+    if (!records.length) return null
+    return records.slice().sort((a, b) =>
+      new Date(b.last_watched_at) - new Date(a.last_watched_at)
+    )[0]
   }
 }

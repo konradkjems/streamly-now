@@ -73,7 +73,10 @@
                 @click="watchNow">
                 <!-- eslint-disable-next-line -->
                 <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg></span>
-                <span class="txt">Watch Now</span>
+                <span class="txt">{{ watchCtaLabel }}</span>
+                <span
+                  v-if="watchCtaSublabel"
+                  :class="$style.watchSub">{{ watchCtaSublabel }}</span>
               </button>
 
               <WatchlistButton :item="item" :show-text="true" />
@@ -89,6 +92,14 @@
                 <span class="txt">Watch Trailer</span>
               </button>
             </div>
+
+            <button
+              v-if="resumeRecord && !resumeRecord.completed"
+              type="button"
+              :class="$style.startOver"
+              @click="watchFromBeginning">
+              Start from beginning
+            </button>
           </div>
         </transition>
       </div>
@@ -103,6 +114,7 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 import { name, stars, yearStart, cert, backdrop, trailer } from '~/mixins/Details';
 import Modal from '~/components/Modal';
 import WatchlistButton from '~/components/WatchlistButton';
@@ -139,8 +151,55 @@ export default {
   },
 
   computed: {
+    ...mapGetters('viewingHistory', ['lastWatchedForMedia']),
+
     type () {
       return this.item.title ? 'movie' : 'tv';
+    },
+
+    resumeRecord () {
+      // Only show Resume when this Hero is for the current detail page, not
+      // when it's used as a featured promo on listings. Compare by route name +
+      // id (coerced - route params are strings, item.id is numeric from TMDb).
+      const expectedRoute = `${this.type}-id`;
+      if (this.$route.name !== expectedRoute) return null;
+      if (Number(this.$route.params.id) !== Number(this.item.id)) return null;
+      return this.lastWatchedForMedia({
+        media_type: this.type,
+        media_id: this.item.id,
+      });
+    },
+
+    watchCtaLabel () {
+      const r = this.resumeRecord;
+      if (!r) {
+        return this.type === 'tv' ? 'Play S1:E1' : 'Play';
+      }
+      if (r.completed && this.type === 'movie') {
+        return 'Watch again';
+      }
+      if (this.type === 'tv') {
+        if (r.completed) {
+          // user finished this episode - default to Resume next-up if any
+          return `Resume S${r.season_number}:E${r.episode_number}`;
+        }
+        return `Resume S${r.season_number}:E${r.episode_number}`;
+      }
+      return 'Resume';
+    },
+
+    watchCtaSublabel () {
+      const r = this.resumeRecord;
+      if (!r || r.completed) return null;
+      const remainingSec = (r.total_duration || 0) - (r.watch_duration || 0);
+      if (remainingSec <= 0) return null;
+      const mins = Math.max(1, Math.round(remainingSec / 60));
+      if (mins >= 60) {
+        const h = Math.floor(mins / 60);
+        const m = mins % 60;
+        return m ? `${h}h ${m}m left` : `${h}h left`;
+      }
+      return `${mins}m left`;
     },
   },
 
@@ -153,15 +212,36 @@ export default {
       this.modalVisible = false;
     },
 
+    buildWatchQuery (override = {}) {
+      const r = this.resumeRecord;
+      const q = { tab: 'watch' };
+      if (this.type === 'tv') {
+        if (r && !override.fromStart) {
+          q.s = r.season_number;
+          q.e = r.episode_number;
+        } else {
+          q.s = 1;
+          q.e = 1;
+        }
+      }
+      return q;
+    },
+
     async watchNow () {
-      // Track viewing start
       await this.trackViewingStart(this.item);
-      
-      // Navigate to the detail page and switch to watch tab
       this.$router.push({
         name: `${this.type}-id`,
         params: { id: this.item.id },
-        query: { tab: 'watch' }
+        query: this.buildWatchQuery(),
+      });
+    },
+
+    async watchFromBeginning () {
+      await this.trackViewingStart(this.item);
+      this.$router.push({
+        name: `${this.type}-id`,
+        params: { id: this.item.id },
+        query: this.buildWatchQuery({ fromStart: true }),
       });
     },
   },
@@ -486,6 +566,44 @@ export default {
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.watchSub {
+  margin-left: 0.4rem;
+  padding-left: 0.8rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.4);
+  font-weight: 500;
+  font-size: 0.85em;
+  text-transform: none;
+  letter-spacing: 0;
+  opacity: 0.9;
+}
+
+.startOver {
+  display: inline-block;
+  margin-top: 1.2rem;
+  padding: 0.4rem 0;
+  background: transparent;
+  border: 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.3rem;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  letter-spacing: $letter-spacing;
+
+  &:hover,
+  &:focus-visible {
+    color: #fff;
+    outline: none;
+  }
+
+  @media (max-width: $breakpoint-medium - 1) {
+    display: none;
+  }
 
   &::before {
     content: '';
