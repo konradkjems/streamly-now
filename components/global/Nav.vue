@@ -83,6 +83,33 @@
           </nuxt-link>
         </div>
 
+        <!-- Ad Block Toggle (Desktop) -->
+        <div :class="$style.adBlockMenu" @click.stop>
+          <button
+            :class="[$style.adBlockBtn, { [$style.adBlockBtnActive]: adInfoOpen }]"
+            type="button"
+            aria-label="Block ads"
+            @click="toggleAdInfo">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </button>
+          <transition name="ad-dropdown">
+            <div v-if="adInfoOpen" :class="$style.adDropdown">
+              <p :class="$style.adDropdownTitle">Block ads</p>
+              <p :class="$style.adDropdownText">Ads vises inde i video-afspilleren og kan ikke blokeres direkte fra hjemmesiden.</p>
+              <p :class="$style.adDropdownText">Installer <strong>uBlock Origin</strong> for automatisk at blokere dem.</p>
+              <a
+                href="https://ublockorigin.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                :class="$style.adDropdownLink">
+                Hent uBlock Origin →
+              </a>
+            </div>
+          </transition>
+        </div>
+
         <button
           class="search-toggle"
           :class="$style.searchBtn"
@@ -179,6 +206,33 @@
             <!-- eslint-disable-next-line -->
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-miterlimit="10"><path d="M16.4 16.7l6.3 6.5"/><ellipse cx="10.5" cy="9.8" rx="9.2" ry="9.1"/></g></svg>
           </button>
+
+          <!-- Ad Block Toggle (Mobile) -->
+          <div :class="$style.adBlockMenu" @click.stop>
+            <button
+              :class="[$style.adBlockBtn, { [$style.adBlockBtnActive]: adInfoOpen }]"
+              type="button"
+              aria-label="Block ads"
+              @click="toggleAdInfo">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+            </button>
+            <transition name="ad-dropdown">
+              <div v-if="adInfoOpen" :class="[$style.adDropdown, $style.adDropdownMobile]">
+                <p :class="$style.adDropdownTitle">Block ads</p>
+                <p :class="$style.adDropdownText">Ads vises inde i video-afspilleren og kan ikke blokeres direkte fra hjemmesiden.</p>
+                <p :class="$style.adDropdownText">Installer <strong>uBlock Origin</strong> for automatisk at blokere dem.</p>
+                <a
+                  href="https://ublockorigin.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  :class="$style.adDropdownLink">
+                  Hent uBlock Origin →
+                </a>
+              </div>
+            </transition>
+          </div>
           
           <!-- User Menu (Mobile) -->
           <div v-if="isAuthenticated" :class="$style.mobileUserMenu">
@@ -300,6 +354,7 @@ export default {
     return {
       mobileMenuOpen: false,
       userMenuOpen: false,
+      adInfoOpen: false,
     };
   },
 
@@ -324,6 +379,10 @@ export default {
 
   methods: {
     ...mapActions('auth', ['signOut']),
+
+    toggleAdInfo() {
+      this.adInfoOpen = !this.adInfoOpen;
+    },
 
     toggleSearch () {
       if (this.$route.name !== 'search') {
@@ -366,10 +425,10 @@ export default {
   },
 
   mounted() {
-    // Close user menu when clicking outside
     document.addEventListener('click', (e) => {
       if (!this.$el.contains(e.target)) {
         this.userMenuOpen = false;
+        this.adInfoOpen = false;
       }
     });
   },
@@ -1053,6 +1112,92 @@ export default {
   }
 }
 
+// Ad Block Toggle
+.adBlockMenu {
+  position: relative;
+}
+
+.adBlockBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.2rem;
+  height: 3.2rem;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  outline: 0;
+  -webkit-tap-highlight-color: transparent;
+
+  &:hover,
+  &:active {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: scale(1.05);
+  }
+
+  &.adBlockBtnActive {
+    background: rgba(229, 9, 20, 0.2);
+    border-color: #e50914;
+    color: #e50914;
+  }
+}
+
+.adDropdown {
+  position: absolute;
+  top: calc(100% + 0.8rem);
+  right: 0;
+  z-index: 1002;
+  width: 26rem;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 1.6rem;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+}
+
+.adDropdownMobile {
+  right: -0.8rem;
+}
+
+.adDropdownTitle {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 1rem;
+}
+
+.adDropdownText {
+  font-size: 1.25rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.5;
+  margin: 0 0 0.6rem;
+
+  strong {
+    color: #fff;
+  }
+}
+
+.adDropdownLink {
+  display: inline-block;
+  margin-top: 0.6rem;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #e50914;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 // Adjust main content padding for mobile header and bottom nav
 @media (max-width: $breakpoint-small) {
   :global(.main-content) {
@@ -1086,6 +1231,17 @@ export default {
 .mobile-nav-backdrop-enter,
 .mobile-nav-backdrop-leave-to {
   opacity: 0;
+}
+
+.ad-dropdown-enter-active,
+.ad-dropdown-leave-active {
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.ad-dropdown-enter,
+.ad-dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
 }
 </style>
 

@@ -34,6 +34,33 @@
                 <span v-if="selectedPlayer === player.value" class="opt-check" aria-hidden="true">✓</span>
               </button>
             </div>
+
+            <div class="settings-divider"></div>
+
+            <div class="settings-section">
+              <div class="settings-label">Ads</div>
+              <div class="settings-toggle-row" @click="toggleAdInfo">
+                <span class="opt-icon">🛡️</span>
+                <span class="opt-name">Block ads</span>
+                <span class="toggle-switch" :class="{ 'is-on': adBlockInfoVisible }" aria-hidden="true">
+                  <span class="toggle-thumb"></span>
+                </span>
+              </div>
+              <transition name="settings-fade">
+                <div v-if="adBlockInfoVisible" class="ad-block-info">
+                  <p>Ads vises inde i video-afspilleren og kan ikke blokeres direkte fra hjemmesiden.</p>
+                  <p>Installer <strong>uBlock Origin</strong> i din browser for at blokere dem automatisk.</p>
+                  <a
+                    href="https://ublockorigin.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="ublock-link"
+                    @click.stop>
+                    Hent uBlock Origin →
+                  </a>
+                </div>
+              </transition>
+            </div>
           </div>
         </transition>
       </div>
@@ -72,9 +99,8 @@
         height="100%"
         frameborder="0"
         allowfullscreen
+        allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
         :title="'Watch ' + title"
-        :sandbox="getSandboxPermissions"
-        referrerpolicy="no-referrer"
         loading="lazy"
         @load="onIframeLoad"
         @error="onIframeError"
@@ -142,6 +168,7 @@ export default {
     return {
       selectedPlayer: 'vidking', // Default to VidKing
       settingsOpen: false,
+      adBlockInfoVisible: false,
       watchStartTime: null,
       currentWatchDuration: 0,
       progressUpdateInterval: null,
@@ -308,6 +335,10 @@ export default {
   },
 
   methods: {
+    toggleAdInfo() {
+      this.adBlockInfoVisible = !this.adBlockInfoVisible
+    },
+
     selectPlayer(playerValue) {
       this.selectedPlayer = playerValue
       console.log('Player changed to:', this.selectedPlayer)
@@ -541,35 +572,8 @@ export default {
       }
       window.addEventListener('blur', this.windowBlurHandler)
       
-      // AGGRESSIVE postMessage blocking
-      this.postMessageHandler = (event) => {
-        // Block ALL postMessage events that might trigger popups
-        if (event.data && typeof event.data === 'object') {
-          const suspiciousCommands = ['openWindow', 'open', 'popup', 'redirect', 'navigate', 'window']
-          if (suspiciousCommands.some(cmd => 
-            event.data.type === cmd || 
-            event.data.action === cmd ||
-            event.data.command === cmd ||
-            JSON.stringify(event.data).toLowerCase().includes(cmd)
-          )) {
-            console.log('🚫 AGGRESSIVE BLOCK - Suspicious postMessage:', event.data)
-            event.stopPropagation()
-            event.preventDefault()
-            return false
-          }
-        }
-      }
-      window.addEventListener('message', this.postMessageHandler, true)
-      
-      // Additional click-based popup blocking
-      this.clickHandler = (e) => {
-        // Block clicks that might trigger popups
-        if (e.target.tagName === 'IFRAME' || e.target.closest('iframe')) {
-          console.log('🚫 AGGRESSIVE BLOCK - iframe click intercepted')
-          e.stopPropagation()
-        }
-      }
-      document.addEventListener('click', this.clickHandler, true)
+      this.postMessageHandler = null
+      this.clickHandler = null
       
       console.log('✅ AGGRESSIVE Popup blocker activated')
       
@@ -974,6 +978,85 @@ export default {
   .opt-check {
     color: #e50914;
     font-weight: 700;
+  }
+}
+
+.settings-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 0.4rem 0;
+}
+
+.settings-toggle-row {
+  display: grid;
+  grid-template-columns: 2.4rem 1fr auto;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 1rem 1.6rem;
+  color: #fff;
+  font-size: 1.4rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+}
+
+.toggle-switch {
+  width: 3.2rem;
+  height: 1.8rem;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 1rem;
+  position: relative;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+
+  &.is-on {
+    background: #e50914;
+  }
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 0.2rem;
+  left: 0.2rem;
+  width: 1.4rem;
+  height: 1.4rem;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+
+  .is-on & {
+    transform: translateX(1.4rem);
+  }
+}
+
+.ad-block-info {
+  padding: 1rem 1.6rem 1.2rem;
+  font-size: 1.25rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.5;
+
+  p {
+    margin: 0 0 0.6rem;
+  }
+
+  strong {
+    color: #fff;
+  }
+}
+
+.ublock-link {
+  display: inline-block;
+  margin-top: 0.4rem;
+  color: #e50914;
+  font-weight: 600;
+  font-size: 1.25rem;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
   }
 }
 
