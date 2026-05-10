@@ -23,6 +23,37 @@
           <div :class="$style.title">{{ headerTitle }}</div>
         </div>
 
+        <!-- Source picker -->
+        <div :class="$style.sourcePicker" @click.stop>
+          <button
+            type="button"
+            :class="$style.sourceBtn"
+            @click="sourceMenuOpen = !sourceMenuOpen">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="23 7 16 12 23 17 23 7"/>
+              <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+            </svg>
+            <span>{{ activePlayerName }}</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          <transition name="source-drop">
+            <div v-if="sourceMenuOpen" :class="$style.sourceMenu">
+              <button
+                v-for="p in playerOptions"
+                :key="p.value"
+                type="button"
+                :class="[$style.sourceOption, { [$style.sourceOptionActive]: activePlayer === p.value }]"
+                @click="switchPlayer(p.value)">
+                <span>{{ p.icon }}</span>
+                <span>{{ p.name }}</span>
+                <span v-if="activePlayer === p.value" :class="$style.sourceCheck">✓</span>
+              </button>
+            </div>
+          </transition>
+        </div>
+
         <button
           type="button"
           :class="$style.iconBtn"
@@ -47,7 +78,8 @@
           :fullscreen="true"
           @ended="onEnded"
           @playing="onPlaying"
-          @paused="onPaused" />
+          @paused="onPaused"
+          @player-changed="activePlayer = $event" />
 
         <UpNextOverlay
           v-if="type === 'tv'"
@@ -131,6 +163,14 @@ export default {
       isPlaying: false,
       idleTimer: null,
       railVisible: true,
+      activePlayer: 'vidking',
+      sourceMenuOpen: false,
+      playerOptions: [
+        { value: 'vidking',  name: 'VidKing',   icon: '👑' },
+        { value: 'movies111', name: '111Movies', icon: '🎥' },
+        { value: 'vidfast',  name: 'VidFast',   icon: '⚡' },
+        { value: 'vidup',    name: 'VidUp',     icon: '🚀' },
+      ],
     };
   },
 
@@ -174,6 +214,11 @@ export default {
 
     hasNextEpisode() {
       return this.type === 'tv' && this.nextSeason && this.nextEpisodeNumber;
+    },
+
+    activePlayerName() {
+      const p = this.playerOptions.find(o => o.value === this.activePlayer);
+      return p ? p.name : 'Source';
     },
 
     kicker() {
@@ -224,6 +269,14 @@ export default {
   },
 
   methods: {
+    switchPlayer(value) {
+      this.activePlayer = value;
+      this.sourceMenuOpen = false;
+      if (this.$refs.player) {
+        this.$refs.player.selectPlayer(value);
+      }
+    },
+
     close() {
       this.$emit('close');
     },
@@ -396,6 +449,74 @@ export default {
   text-overflow: ellipsis;
 }
 
+.sourcePicker {
+  position: relative;
+}
+
+.sourceBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 1.2rem;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 2rem;
+  color: #fff;
+  font-size: 1.3rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.22);
+  }
+}
+
+.sourceMenu {
+  position: absolute;
+  top: calc(100% + 0.8rem);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  min-width: 18rem;
+  background: rgba(10, 10, 10, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 0.4rem 0;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(12px);
+}
+
+.sourceOption {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem 1.6rem;
+  background: transparent;
+  border: 0;
+  color: #fff;
+  font-size: 1.4rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  text-align: left;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+}
+
+.sourceOptionActive {
+  color: #e50914;
+}
+
+.sourceCheck {
+  margin-left: auto;
+  color: #e50914;
+  font-weight: 700;
+}
+
 .stage {
   position: relative;
   flex: 1;
@@ -428,5 +549,16 @@ export default {
 .watch-overlay-enter,
 .watch-overlay-leave-to {
   opacity: 0;
+}
+
+.source-drop-enter-active,
+.source-drop-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.source-drop-enter,
+.source-drop-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-6px);
 }
 </style>

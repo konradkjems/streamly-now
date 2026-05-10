@@ -92,7 +92,10 @@ export default {
         ],
         'frame-src': [
           "'self'",
-          "https://www.vidking.net"
+          "https://www.vidking.net",
+          "https://111movies.com",
+          "https://vidfast.pro",
+          "https://vidup.to"
         ],
         'object-src': ["'none'"],
         'base-uri': ["'self'"],

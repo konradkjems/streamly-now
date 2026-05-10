@@ -206,12 +206,19 @@ export default {
           badge: 'Alternative player', 
           badgeClass: 'badge-hd' 
         },
-        { 
-          value: 'vidfast', 
-          name: 'VidFast', 
-          icon: '⚡', 
-          badge: 'Alternative player', 
-          badgeClass: 'badge-fast' 
+        {
+          value: 'vidfast',
+          name: 'VidFast',
+          icon: '⚡',
+          badge: 'Alternative player',
+          badgeClass: 'badge-fast'
+        },
+        {
+          value: 'vidup',
+          name: 'VidUp',
+          icon: '🚀',
+          badge: 'Alternative player',
+          badgeClass: 'badge-vidup'
         }
       ],
     }
@@ -279,11 +286,28 @@ export default {
       if (this.type === 'movie') {
         return `https://vidfast.pro/movie/${this.movieId}`;
       } else if (this.type === 'tv' && this.season && this.episode) {
-        return `https://vidfast.pro/tv/${this.movieId}/${this.season}/${this.episode}=`;
+        return `https://vidfast.pro/tv/${this.movieId}/${this.season}/${this.episode}`;
       }
       return '';
     },
-    
+
+    // VidUp embed URL
+    vidupEmbedUrl: function () {
+      const preferences = this.currentPreferences || {};
+      const subtitleLanguage = preferences.subtitle_language || 'en';
+      const params = [`theme=e50914`, `autoPlay=true`];
+      if (subtitleLanguage && subtitleLanguage !== 'off') {
+        params.push(`sub=${subtitleLanguage}`);
+      }
+      const qs = '?' + params.join('&');
+      if (this.type === 'movie') {
+        return `https://vidup.to/movie/${this.movieId}${qs}`;
+      } else if (this.type === 'tv' && this.season && this.episode) {
+        return `https://vidup.to/tv/${this.movieId}/${this.season}/${this.episode}${qs}`;
+      }
+      return '';
+    },
+
     // Current embed URL based on selected player
     currentEmbedUrl: function () {
       switch (this.selectedPlayer) {
@@ -291,6 +315,8 @@ export default {
           return this.movies111EmbedUrl;
         case 'vidfast':
           return this.vidfastEmbedUrl;
+        case 'vidup':
+          return this.vidupEmbedUrl;
         case 'vidking':
         default:
           return this.vidkingEmbedUrl;
@@ -341,7 +367,7 @@ export default {
 
     selectPlayer(playerValue) {
       this.selectedPlayer = playerValue
-      console.log('Player changed to:', this.selectedPlayer)
+      this.$emit('player-changed', playerValue)
       // Reset tracking when switching players
       this.hasTrackedStart = false
       this.isPlaying = false
@@ -366,7 +392,8 @@ export default {
       const allowedOrigins = [
         'vidking.net',
         '111movies.com',
-        'vidfast.pro'
+        'vidfast.pro',
+        'vidup.to'
       ]
       
       const isAllowedOrigin = allowedOrigins.some(origin => event.origin.includes(origin))
