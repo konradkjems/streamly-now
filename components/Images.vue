@@ -81,9 +81,9 @@ export default {
       let thumb;
 
       if (this.type === 'poster') {
-        thumb = `${apiImgUrl}/w370_and_h556_bestv2`;
+        thumb = `${apiImgUrl}/w342`;
       } else {
-        thumb = `${apiImgUrl}/w533_and_h300_bestv2`;
+        thumb = `${apiImgUrl}/w500`;
       }
 
       this.images.map((image) => {

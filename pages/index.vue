@@ -218,7 +218,7 @@ export default {
     },
 
     getPosterUrl(posterPath) {
-      return `https://image.tmdb.org/t/p/w370_and_h556_bestv2${posterPath}`
+      return `https://image.tmdb.org/t/p/w342${posterPath}`
     },
 
     truncateOverview(overview) {

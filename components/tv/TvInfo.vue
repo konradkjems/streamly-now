@@ -154,7 +154,7 @@ export default {
   computed: {
     poster () {
       if (this.item.poster_path) {
-        return `${apiImgUrl}/w370_and_h556_bestv2${this.item.poster_path}`;
+        return `${apiImgUrl}/w342${this.item.poster_path}`;
       } else {
         return false;
       }

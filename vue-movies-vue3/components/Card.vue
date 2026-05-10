@@ -74,9 +74,9 @@ const stars = computed(() => {
 
 const poster = computed(() => {
   if (props.item.poster_path) {
-    return `${apiImgUrl}/w370_and_h556_bestv2${props.item.poster_path}`
+    return `${apiImgUrl}/w342${props.item.poster_path}`
   } else if (props.item.profile_path) {
-    return `${apiImgUrl}/w370_and_h556_bestv2${props.item.profile_path}`
+    return `${apiImgUrl}/w342${props.item.profile_path}`
   } else {
     return false
   }

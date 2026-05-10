@@ -626,7 +626,7 @@ export default {
     },
 
     getPosterUrl(posterPath) {
-      return `${apiImgUrl}/w370_and_h556_bestv2${posterPath}`
+      return `${apiImgUrl}/w342${posterPath}`
     },
 
     getItemUrl(item) {
